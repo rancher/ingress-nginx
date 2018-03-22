@@ -91,11 +91,28 @@ func GetPodDetails(kubeClient clientset.Interface) (*PodInfo, error) {
 		return nil, fmt.Errorf("unable to get POD information")
 	}
 
+	var labels map[string]string
+	owners := pod.GetOwnerReferences()
+	if len(owners) == 0 {
+		labels = pod.GetLabels()
+	} else {
+		labels = make(map[string]string)
+		for _, owner := range owners {
+			switch owner.Kind {
+			case "DaemonSet":
+				ds, _ := kubeClient.ExtensionsV1beta1().DaemonSets(podNs).Get(owner.Name, metav1.GetOptions{})
+				for k := range ds.Spec.Template.ObjectMeta.Labels {
+					labels[k] = ds.Spec.Template.ObjectMeta.Labels[k]
+				}
+			}
+		}
+	}
+
 	return &PodInfo{
 		Name:      podName,
 		Namespace: podNs,
 		NodeIP:    GetNodeIPOrName(kubeClient, pod.Spec.NodeName, true),
-		Labels:    pod.GetLabels(),
+		Labels:    labels,
 	}, nil
 }
 
