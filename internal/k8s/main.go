@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	internalAddressAnnotation = "rke.io/external-ip"
-	externalAddressAnnotation = "rke.io/internal-ip"
+	internalAddressAnnotation = "rke.rancher.io/external-ip"
+	externalAddressAnnotation = "rke.rancher.io/internal-ip"
 )
 
 // ParseNameNS parses a string searching a namespace and name
