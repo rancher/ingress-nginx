@@ -18,7 +18,7 @@ all: all-container
 BUILDTAGS=
 
 # Use the 0.0 tag for testing, it shouldn't clobber any release builds
-TAG?=0.10.2-rancher2
+TAG?=0.10.2-rancher1
 REGISTRY?=rancher
 GOOS?=linux
 DOCKER?=gcloud docker --
