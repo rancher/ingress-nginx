@@ -392,19 +392,19 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"etc/nginx/lua/balancer/chash.lua": etcNginxLuaBalancerChashLua,
-	"etc/nginx/lua/balancer/ewma.lua": etcNginxLuaBalancerEwmaLua,
-	"etc/nginx/lua/balancer.lua": etcNginxLuaBalancerLua,
-	"etc/nginx/lua/configuration.lua": etcNginxLuaConfigurationLua,
-	"etc/nginx/lua/sticky.lua": etcNginxLuaStickyLua,
+	"etc/nginx/lua/balancer/chash.lua":           etcNginxLuaBalancerChashLua,
+	"etc/nginx/lua/balancer/ewma.lua":            etcNginxLuaBalancerEwmaLua,
+	"etc/nginx/lua/balancer.lua":                 etcNginxLuaBalancerLua,
+	"etc/nginx/lua/configuration.lua":            etcNginxLuaConfigurationLua,
+	"etc/nginx/lua/sticky.lua":                   etcNginxLuaStickyLua,
 	"etc/nginx/lua/test/balancer/chash_test.lua": etcNginxLuaTestBalancerChash_testLua,
-	"etc/nginx/lua/test/balancer_test.lua": etcNginxLuaTestBalancer_testLua,
-	"etc/nginx/lua/test/up.sh": etcNginxLuaTestUpSh,
-	"etc/nginx/lua/util.lua": etcNginxLuaUtilLua,
-	"etc/nginx/nginx.conf": etcNginxNginxConf,
-	"etc/nginx/template/nginx.tmpl": etcNginxTemplateNginxTmpl,
-	"ingress-controller/clean-nginx-conf.sh": ingressControllerCleanNginxConfSh,
-	"ingress-controller/indent.sh": ingressControllerIndentSh,
+	"etc/nginx/lua/test/balancer_test.lua":       etcNginxLuaTestBalancer_testLua,
+	"etc/nginx/lua/test/up.sh":                   etcNginxLuaTestUpSh,
+	"etc/nginx/lua/util.lua":                     etcNginxLuaUtilLua,
+	"etc/nginx/nginx.conf":                       etcNginxNginxConf,
+	"etc/nginx/template/nginx.tmpl":              etcNginxTemplateNginxTmpl,
+	"ingress-controller/clean-nginx-conf.sh":     ingressControllerCleanNginxConfSh,
+	"ingress-controller/indent.sh":               ingressControllerIndentSh,
 }
 
 // AssetDir returns the file names below a certain
@@ -446,23 +446,24 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"etc": &bintree{nil, map[string]*bintree{
 		"nginx": &bintree{nil, map[string]*bintree{
 			"lua": &bintree{nil, map[string]*bintree{
 				"balancer": &bintree{nil, map[string]*bintree{
 					"chash.lua": &bintree{etcNginxLuaBalancerChashLua, map[string]*bintree{}},
-					"ewma.lua": &bintree{etcNginxLuaBalancerEwmaLua, map[string]*bintree{}},
+					"ewma.lua":  &bintree{etcNginxLuaBalancerEwmaLua, map[string]*bintree{}},
 				}},
-				"balancer.lua": &bintree{etcNginxLuaBalancerLua, map[string]*bintree{}},
+				"balancer.lua":      &bintree{etcNginxLuaBalancerLua, map[string]*bintree{}},
 				"configuration.lua": &bintree{etcNginxLuaConfigurationLua, map[string]*bintree{}},
-				"sticky.lua": &bintree{etcNginxLuaStickyLua, map[string]*bintree{}},
+				"sticky.lua":        &bintree{etcNginxLuaStickyLua, map[string]*bintree{}},
 				"test": &bintree{nil, map[string]*bintree{
 					"balancer": &bintree{nil, map[string]*bintree{
 						"chash_test.lua": &bintree{etcNginxLuaTestBalancerChash_testLua, map[string]*bintree{}},
 					}},
 					"balancer_test.lua": &bintree{etcNginxLuaTestBalancer_testLua, map[string]*bintree{}},
-					"up.sh": &bintree{etcNginxLuaTestUpSh, map[string]*bintree{}},
+					"up.sh":             &bintree{etcNginxLuaTestUpSh, map[string]*bintree{}},
 				}},
 				"util.lua": &bintree{etcNginxLuaUtilLua, map[string]*bintree{}},
 			}},
@@ -474,7 +475,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"ingress-controller": &bintree{nil, map[string]*bintree{
 		"clean-nginx-conf.sh": &bintree{ingressControllerCleanNginxConfSh, map[string]*bintree{}},
-		"indent.sh": &bintree{ingressControllerIndentSh, map[string]*bintree{}},
+		"indent.sh":           &bintree{ingressControllerIndentSh, map[string]*bintree{}},
 	}},
 }}
 
@@ -524,4 +525,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
