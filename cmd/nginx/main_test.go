@@ -30,7 +30,9 @@ import (
 func TestCreateApiserverClient(t *testing.T) {
 	home := os.Getenv("HOME")
 	kubeConfigFile := fmt.Sprintf("%v/.kube/config", home)
-
+	if _, err := os.Stat(kubeConfigFile); os.IsNotExist(err) {
+		t.Skip()
+	}
 	cli, err := createApiserverClient("", kubeConfigFile)
 	if err != nil {
 		t.Fatalf("unexpected error creating api server client: %v", err)
@@ -48,7 +50,9 @@ func TestCreateApiserverClient(t *testing.T) {
 func TestHandleSigterm(t *testing.T) {
 	home := os.Getenv("HOME")
 	kubeConfigFile := fmt.Sprintf("%v/.kube/config", home)
-
+	if _, err := os.Stat(kubeConfigFile); os.IsNotExist(err) {
+		t.Skip()
+	}
 	cli, err := createApiserverClient("", kubeConfigFile)
 	if err != nil {
 		t.Fatalf("unexpected error creating api server client: %v", err)
