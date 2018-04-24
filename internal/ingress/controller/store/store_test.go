@@ -43,7 +43,9 @@ func TestStore(t *testing.T) {
 	home := os.Getenv("HOME")
 	kubeConfigFile := fmt.Sprintf("%v/.kube/config", home)
 	kubeContext := ""
-
+	if _, err := os.Stat(kubeConfigFile); os.IsNotExist(err) {
+		t.Skip()
+	}
 	kubeConfig, err := framework.LoadConfig(kubeConfigFile, kubeContext)
 	if err != nil {
 		t.Errorf("unexpected error loading kubeconfig file: %v", err)
