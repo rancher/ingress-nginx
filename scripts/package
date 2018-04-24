@@ -9,7 +9,7 @@ IMAGE=$REPO/nginx-ingress-controller
 source $(dirname $0)/version
 cd $(dirname $0)/..
 go-bindata -o internal/file/bindata.go -prefix="rootfs" -pkg=file -ignore=Dockerfile -ignore=".DS_Store" rootfs/...
-
+mkdir -p package
 package (){
     pushd package
     local dockerfilename QEMUARCH GOARCH DUMB_ARCH BASEIMAGE IMAGE_NAME
