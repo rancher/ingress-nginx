@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+REPO=${REPO:-rancher}
+SCRIPTPATH="$(cd "$(dirname "$0")"; pwd -P)"
+QEMUVERSION=v2.9.1-1
+IMAGE=$REPO/nginx-ingress-controller
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+go-bindata -o internal/file/bindata.go -prefix="rootfs" -pkg=file -ignore=Dockerfile -ignore=".DS_Store" rootfs/...
+mkdir -p package
+package (){
+    pushd package
+    local dockerfilename QEMUARCH GOARCH DUMB_ARCH BASEIMAGE IMAGE_NAME
+    BASEIMAGE=${BASEIMAGE:-"quay.io/kubernetes-ingress-controller/nginx-$2:0.32"}
+    IMAGE_NAME=$IMAGE-$2
+    if [ "$2" = "arm" ]; then
+        QEMUARCH=arm
+        GOARCH=arm
+        DUMB_ARCH=armhf
+    fi
+    if [ "$2"= "arm64" ]; then
+        QEMUARCH=aarch64
+    fi
+    if [ "$2" = "ppc64le"]; then
+        QEMUARCH=ppc64le
+        GOARCH=ppc64le
+        DUMB_ARCH=ppc64el
+    fi
+    if [ "$2" = "s390x" ]; then
+        QEMUARCH=s390x
+    fi
+
+    dockerfilename="tmp/Dockerfile"
+    mkdir tmp
+    cp ../bin/$1/$2/nginx-ingress-controller ./tmp
+    cp -r ../rootfs/* ./tmp/
+    sed -i "s|BASEIMAGE|$BASEIMAGE|g" $dockerfilename
+
+    if [ "$2" == "amd64" ]; then
+        sed -i "/CROSS_BUILD_/d" $dockerfilename
+    else 
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+        curl -sSL "https://github.com/multiarch/qemu-user-static/releases/download/${QEMUVERSION}/x86_64_qemu-${QEMUARCH}-static.tar.gz" | tar -xz -C tmp
+        sed -i "s/CROSS_BUILD_//g" $dockerfilename
+    fi
+
+    echo "building image $IMAGE_NAME:$TAG"
+    docker build -t $IMAGE_NAME:$TAG tmp
+
+    if [ "$2" == "amd64" ]; then
+        docker tag $IMAGE_NAME:$TAG $IMAGE:$TAG
+    fi
+    rm -rf tmp
+    popd
+}
+
+source $SCRIPTPATH/version
+cd $SCRIPTPATH/..
+
+for os in $(ls bin); do
+  for arch in $(ls bin/$os); do
+    package $os $arch
+  done
+done
