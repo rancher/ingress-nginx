@@ -70,13 +70,14 @@ func GetNodeIPOrName(kubeClient clientset.Interface, name string, useInternalIP 
 				}
 			}
 		}
-		if node.Annotations != nil {
-			if annotatedIP := node.Annotations[externalAddressAnnotation]; annotatedIP != "" {
-				return annotatedIP
-			}
-			if annotatedIP := node.Annotations[internalAddressAnnotation]; annotatedIP != "" {
-				return annotatedIP
-			}
+	}
+
+	if node.Annotations != nil {
+		if annotatedIP := node.Annotations[externalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
+		}
+		if annotatedIP := node.Annotations[internalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
 		}
 	}
 
