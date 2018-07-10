@@ -44,20 +44,13 @@ func TestNewUDPLogListener(t *testing.T) {
 
 	defer l.Close()
 
-	go func() {
-		for {
-			conn, err := l.Accept()
-			if err != nil {
-				continue
-			}
+	network, _ := net.Dial("unix", tmpFile)
+	network.Write([]byte("message"))
 
-			go handleMessages(conn, fn)
-		}
-	}()
+	conn, err := l.Accept()
+	handleMessages(conn, fn)
 
-	conn, _ := net.Dial("unix", tmpFile)
-	conn.Write([]byte("message"))
-	conn.Close()
+	network.Close()
 
 	time.Sleep(1 * time.Millisecond)
 	if count != 1 {
