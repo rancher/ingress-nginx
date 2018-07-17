@@ -13,7 +13,7 @@ mkdir -p package
 package (){
     pushd package
     local dockerfilename QEMUARCH GOARCH DUMB_ARCH BASEIMAGE IMAGE_NAME
-    BASEIMAGE=${BASEIMAGE:-"quay.io/kubernetes-ingress-controller/nginx-$2:0.32"}
+    BASEIMAGE=${BASEIMAGE:-"quay.io/kubernetes-ingress-controller/nginx-$2:0.53"}
     IMAGE_NAME=$IMAGE-$2
     if [ "$2" = "arm" ]; then
         QEMUARCH=arm
