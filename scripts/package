@@ -20,7 +20,7 @@ package (){
         GOARCH=arm
         DUMB_ARCH=armhf
     fi
-    if [ "$2"= "arm64" ]; then
+    if [ "$2" = "arm64" ]; then
         QEMUARCH=aarch64
     fi
     if [ "$2" = "ppc64le"]; then
@@ -44,6 +44,7 @@ package (){
         docker run --rm --privileged multiarch/qemu-user-static:register --reset
         curl -sSL "https://github.com/multiarch/qemu-user-static/releases/download/${QEMUVERSION}/x86_64_qemu-${QEMUARCH}-static.tar.gz" | tar -xz -C tmp
         sed -i "s/CROSS_BUILD_//g" $dockerfilename
+        sed -i "s|QEMUARCH|$QEMUARCH|g" $dockerfilename
     fi
 
     echo "building image $IMAGE_NAME:$TAG"
