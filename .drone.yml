@@ -1,9 +1,24 @@
----
-pipeline:
-  build:
-    privileged: true
-    image: rancher/dapper:1.11.2
+kind: pipeline
+name: amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    image: rancher/dapper:v0.4.1
+    environment:
+      GIT_IN_DAPPER: true
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
+      - name: docker
+        path: /var/run/docker.sock
     commands:
-    - ./scripts/rancher-prepare dapper ci
+      - apk add --no-cache git
+      - apk add --no-cache bash
+      - echo $PWD
+      - ./scripts/rancher-prepare dapper ci
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
