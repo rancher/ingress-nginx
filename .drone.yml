@@ -24,13 +24,15 @@ steps:
         path: /var/run/docker.sock
     environment:
       USERNAME:
-        from_secret: dockerhub_username
+        from_secret: docker_username
       PASSWORD:
-        from_secret: dockerhub_password
+        from_secret: docker_password
     commands:
       - "docker login -u $USERNAME -p $PASSWORD"
       - "docker push rancher/nginx-ingress-controller-amd64:${DRONE_TAG}"
     when:
+      instance:
+        - drone-publish.rancher.io
       event:
         - tag
 volumes:
@@ -64,13 +66,15 @@ steps:
           path: /var/run/docker.sock
     environment:
       USERNAME:
-        from_secret: dockerhub_username
+        from_secret: docker_username
       PASSWORD:
-        from_secret: dockerhub_password
+        from_secret: docker_password
     commands:
       - "docker login -u $USERNAME -p $PASSWORD"
       - "docker push rancher/nginx-ingress-controller-arm64:${DRONE_TAG}"
     when:
+      instance:
+        - drone-publish.rancher.io
       event:
         - tag
 volumes:
@@ -86,15 +90,17 @@ steps:
     image: plugins/manifest:1.0.2
     settings:
       username:
-        from_secret: dockerhub_username
+        from_secret: docker_username
       password:
-        from_secret: dockerhub_password
+        from_secret: docker_password
       target: "rancher/nginx-ingress-controller:${DRONE_TAG}"
       template: "rancher/nginx-ingress-controller-ARCH:${DRONE_TAG}"
       platforms:
         - linux/amd64
         - linux/arm64
     when:
+      instance:
+        - drone-publish.rancher.io
       event:
         - tag
 depends_on:
