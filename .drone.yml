@@ -29,7 +29,8 @@ steps:
         from_secret: docker_password
     commands:
       - "docker login -u $USERNAME -p $PASSWORD"
-      - "docker push rancher/nginx-ingress-controller-amd64:${DRONE_TAG}"
+      - "docker tag rancher/nginx-ingress-controller-amd64:${DRONE_TAG} rancher/nginx-ingress-controller:${DRONE_TAG}-amd64"
+      - "docker push rancher/nginx-ingress-controller:${DRONE_TAG}-amd64"
     when:
       instance:
         - drone-publish.rancher.io
@@ -71,7 +72,8 @@ steps:
         from_secret: docker_password
     commands:
       - "docker login -u $USERNAME -p $PASSWORD"
-      - "docker push rancher/nginx-ingress-controller-arm64:${DRONE_TAG}"
+      - "docker tag rancher/nginx-ingress-controller-arm64:${DRONE_TAG} rancher/nginx-ingress-controller:${DRONE_TAG}-arm64"
+      - "docker push rancher/nginx-ingress-controller:${DRONE_TAG}-arm64"
     when:
       instance:
         - drone-publish.rancher.io
@@ -94,7 +96,7 @@ steps:
       password:
         from_secret: docker_password
       target: "rancher/nginx-ingress-controller:${DRONE_TAG}"
-      template: "rancher/nginx-ingress-controller-ARCH:${DRONE_TAG}"
+      template: "rancher/nginx-ingress-controller:${DRONE_TAG}-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
