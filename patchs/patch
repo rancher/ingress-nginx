@@ -1,9 +1,9 @@
 diff --git a/internal/k8s/main.go b/internal/k8s/main.go
-index d10f3e5db..10fed6035 100644
+index 73ef35b43..5861cb0e0 100644
 --- a/internal/k8s/main.go
 +++ b/internal/k8s/main.go
 @@ -28,6 +28,11 @@ import (
- 	"k8s.io/client-go/tools/cache"
+ 	"k8s.io/klog"
  )
  
 +const (
@@ -30,7 +30,7 @@ index d10f3e5db..10fed6035 100644
  	for _, address := range node.Status.Addresses {
  		if address.Type == apiv1.NodeExternalIP {
  			if address.Address != "" {
-@@ -92,11 +106,28 @@ func GetPodDetails(kubeClient clientset.Interface) (*PodInfo, error) {
+@@ -91,10 +105,27 @@ func GetPodDetails(kubeClient clientset.Interface) (*PodInfo, error) {
  		return nil, fmt.Errorf("unable to get POD information")
  	}
  
@@ -54,37 +54,19 @@ index d10f3e5db..10fed6035 100644
  	return &PodInfo{
  		Name:      podName,
  		Namespace: podNs,
- 		NodeIP:    GetNodeIPOrName(kubeClient, pod.Spec.NodeName, true),
 -		Labels:    pod.GetLabels(),
 +		Labels:    labels,
  	}, nil
  }
  
 diff --git a/test/e2e/e2e_test.go b/test/e2e/e2e_test.go
-index 8de277bc5..a022bc34d 100644
+index f7546229b..d9efdf970 100644
 --- a/test/e2e/e2e_test.go
 +++ b/test/e2e/e2e_test.go
-@@ -19,9 +19,6 @@ package e2e
- import (
- 	"testing"
- 
--	"github.com/golang/glog"
--	"k8s.io/client-go/tools/clientcmd"
--
- 	"k8s.io/ingress-nginx/test/e2e/framework"
- )
- 
-@@ -29,9 +26,12 @@ func init() {
- 	framework.RegisterParseFlags()
- 
- 	if "" == framework.TestContext.KubeConfig {
--		glog.Fatalf("environment variable %v must be set", clientcmd.RecommendedConfigPathEnvVar)
-+		//glog.Fatalf("environment variable %v must be set", clientcmd.RecommendedConfigPathEnvVar)
- 	}
+@@ -30,5 +30,6 @@ func init() {
+ 	//	}
  }
  func TestE2E(t *testing.T) {
-+	if "" == framework.TestContext.KubeConfig {
-+		t.Skip("test is skiped because kubeconfig is missing")
-+	}
++	t.Skip("test is skiped because rancher don't build it in kubernetes")
  	RunE2ETests(t)
  }
