@@ -22,3 +22,13 @@ go build \
     -X ${PKG}/version.COMMIT=${COMMIT} \
     -X ${PKG}/version.REPO=${REPO_INFO}" \
     -o ${OUTPUT_BIN} ${PKG}/cmd/nginx
+
+echo "Building bin/${ARCH}/dbg"
+OUTPUT_BIN="bin/$ARCH/dbg"
+go build \
+    ${GOBUILD_FLAGS} \
+    -ldflags "-s -w \
+        -X ${PKG}/version.RELEASE=${TAG} \
+        -X ${PKG}/version.COMMIT=${GIT_COMMIT} \
+        -X ${PKG}/version.REPO=${REPO_INFO}" \
+    -o bin/${ARCH}/dbg ${PKG}/cmd/dbg
