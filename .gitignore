@@ -53,3 +53,7 @@ build/images/nginx/aws.tfvars
 build/images/nginx/env.tfvars
 
 images/fastcgi-helloserver/rootfs/fastcgi-helloserver
+
+# rancher ci
+.dapper
+/dist/
