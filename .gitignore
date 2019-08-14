@@ -49,3 +49,6 @@ gh-pages
 test/e2e-image/wait-for-nginx\.sh
 
 .cache
+# rancher ci
+.dapper
+/dist/
