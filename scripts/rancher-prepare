@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+mv Makefile Makefile_k8s
+mv Makefile_rancher Makefile
+
+cat >>.gitignore<< EOF
+# rancher ci
+.dapper
+/dist/
+EOF
+
+$@
