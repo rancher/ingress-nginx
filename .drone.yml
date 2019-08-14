@@ -1,0 +1,122 @@
+---
+kind: pipeline
+name: amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  image: rancher/dapper:v0.4.1
+  commands:
+  - apk add --no-cache git
+  - apk add --no-cache bash
+  - ./scripts/rancher-prepare dapper ci
+  environment:
+    GIT_IN_DAPPER: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+
+- name: publish-amd64
+  image: docker
+  commands:
+  - docker login -u $USERNAME -p $PASSWORD
+  - "docker tag rancher/nginx-ingress-controller-amd64:${DRONE_TAG} rancher/nginx-ingress-controller:${DRONE_TAG}-amd64"
+  - "docker push rancher/nginx-ingress-controller:${DRONE_TAG}-amd64"
+  environment:
+    PASSWORD:
+      from_secret: docker_password
+    USERNAME:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+    instance:
+    - drone-publish.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: build
+  image: rancher/dapper:v0.4.1
+  commands:
+  - apk add --no-cache git
+  - apk add --no-cache bash
+  - ./scripts/rancher-prepare dapper ci
+  environment:
+    GIT_IN_DAPPER: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+
+- name: publish-arm64
+  image: docker
+  commands:
+  - docker login -u $USERNAME -p $PASSWORD
+  - "docker tag rancher/nginx-ingress-controller-arm64:${DRONE_TAG} rancher/nginx-ingress-controller:${DRONE_TAG}-arm64"
+  - "docker push rancher/nginx-ingress-controller:${DRONE_TAG}-arm64"
+  environment:
+    PASSWORD:
+      from_secret: docker_password
+    USERNAME:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+    instance:
+    - drone-publish.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: manifest
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: push-manifest
+  image: plugins/manifest:1.0.2
+  settings:
+    password:
+      from_secret: docker_password
+    platforms:
+    - linux/amd64
+    - linux/arm64
+    target: "rancher/nginx-ingress-controller:${DRONE_TAG}"
+    template: "rancher/nginx-ingress-controller:${DRONE_TAG}-ARCH"
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - tag
+    instance:
+    - drone-publish.rancher.io
+
+depends_on:
+- amd64
+- arm64
