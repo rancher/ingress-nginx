@@ -47,6 +47,7 @@ import (
 )
 
 func TestStore(t *testing.T) {
+	t.Skip("test is skiped because rancher don't build it in kubernetes")
 	k8s.IsNetworkingIngressAvailable = true
 
 	pod := &k8s.PodInfo{
