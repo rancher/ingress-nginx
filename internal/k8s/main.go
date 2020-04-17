@@ -113,10 +113,19 @@ func GetPodDetails(kubeClient clientset.Interface) (*PodInfo, error) {
 		return nil, fmt.Errorf("unable to get POD information")
 	}
 
+	// Copy the labels from the Pod, *except* any cattle.io additions
+	labels := map[string]string{}
+	for k, v := range pod.GetLabels() {
+		if k == "field.cattle.io/podName" {
+			continue
+		}
+		labels[k] = v
+	}
+
 	return &PodInfo{
 		Name:      podName,
 		Namespace: podNs,
-		Labels:    pod.GetLabels(),
+		Labels:    labels,
 	}, nil
 }
 
