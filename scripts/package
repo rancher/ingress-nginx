@@ -7,6 +7,12 @@ source $(dirname $0)/version
 cd $(dirname $0)/..
 
 # manifest push happens as part of make release, so login is required inside the dapper container
+<<<<<<< HEAD
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 REGISTRY=${REPO} PLATFORMS="arm64 amd64" BUILDX_PLATFORMS="linux/amd64,linux/arm64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
+=======
+echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+
+REGISTRY=${REPO} PLATFORMS="arm64 amd64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
+>>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
