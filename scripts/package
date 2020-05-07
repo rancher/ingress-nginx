@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+REPO=${REPO:-rancher}
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+
+# manifest push happens as part of make release, so login is required inside the dapper container
+echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+
+REGISTRY=${REPO} PLATFORMS="arm64 amd64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
