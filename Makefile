@@ -267,9 +267,4 @@ release: ensure-buildx clean
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
-
-.PHONY: build-docs
-build-docs:
-	pip install -U mkdocs-material==6.2.4 mkdocs-awesome-pages-plugin mkdocs-minify-plugin mkdocs-redirects
-	mkdocs build --config-file mkdocs.yml
+		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile.chroot
