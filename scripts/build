@@ -25,6 +25,7 @@ do
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 =======
 >>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
@@ -33,6 +34,7 @@ do
 =======
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
@@ -46,4 +48,15 @@ do
 =======
 >>>>>>> 0b62bbe4d ((cherry-pick) add Rancher's workflow files and add FOSSA)
 >>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+=======
+>>>>>>> 0b62bbe4d ((cherry-pick) add Rancher's workflow files and add FOSSA)
+=======
+=======
+   ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+=======
+   ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+>>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+>>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+>>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+>>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 done
