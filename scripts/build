@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+PKG="k8s.io/ingress-nginx"
+
+rm -rf bin/*
+mkdir -p bin
+
+declare -a arches=("arm64" "amd64")
+for arch in "${arches[@]}"
+do
+   ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+done
