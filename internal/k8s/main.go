@@ -83,6 +83,15 @@ func GetNodeIPs(kubeClient clientset.Interface, name string, useInternalIP bool)
 		}
 	}
 
+	if node.Annotations != nil {
+		if annotatedIP := node.Annotations[externalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
+		}
+		if annotatedIP := node.Annotations[internalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
+		}
+	}
+
 	for _, address := range node.Status.Addresses {
 		if address.Type == apiv1.NodeExternalIP {
 			if address.Address != "" {

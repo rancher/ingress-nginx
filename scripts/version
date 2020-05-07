@@ -31,8 +31,11 @@ TAG=${TAG:-$VERSION}
 PKG="k8s.io/ingress-nginx"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+=======
+>>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 
 echo "GIT_COMMIT: $GIT_COMMIT"
 echo "GIT_TAG: $GIT_TAG"
@@ -40,7 +43,12 @@ echo "VERSION: $VERSION"
 echo "TAG: $TAG"
 echo "ARCH: $ARCH"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a98f9bc1e ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 =======
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+=======
+=======
+>>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+>>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
