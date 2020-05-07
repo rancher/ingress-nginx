@@ -32,6 +32,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+const (
+	internalAddressAnnotation = "rke.cattle.io/internal-ip"
+	externalAddressAnnotation = "rke.cattle.io/external-ip"
+)
+
 // ParseNameNS parses a string searching a namespace and name
 func ParseNameNS(input string) (ns, name string, err error) {
 	nsName := strings.Split(input, "/")
@@ -66,7 +71,28 @@ func GetNodeIPs(kubeClient clientset.Interface, name string, useInternalIP bool)
 		return internalIPs
 	}
 
+<<<<<<< HEAD
 	return externalIPs
+=======
+	if node.Annotations != nil {
+		if annotatedIP := node.Annotations[externalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
+		}
+		if annotatedIP := node.Annotations[internalAddressAnnotation]; annotatedIP != "" {
+			return annotatedIP
+		}
+	}
+
+	for _, address := range node.Status.Addresses {
+		if address.Type == apiv1.NodeExternalIP {
+			if address.Address != "" {
+				return address.Address
+			}
+		}
+	}
+
+	return defaultOrInternalIP
+>>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 }
 
 var (
