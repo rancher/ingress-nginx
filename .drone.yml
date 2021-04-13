@@ -23,6 +23,7 @@ steps:
   when:
     event:
     - tag
+    - push
     instance:
     - drone-publish.rancher.io
 
