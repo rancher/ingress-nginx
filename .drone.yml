@@ -22,9 +22,9 @@ steps:
     path: /var/run/docker.sock
   when:
     event:
-    - tag
+    - push
     instance:
-    - drone-publish.rancher.io
+    - drone-pr.rancher.io
 
 volumes:
 - name: docker
