@@ -1,5 +1,6 @@
 FROM docker:19.03.9
 ARG DAPPER_HOST_ARCH
+ARG STEP=ci
 ENV ARCH=${DAPPER_HOST_ARCH}
 RUN mkdir -p /.docker/cli-plugins
 RUN apk update && apk upgrade && apk add bash && ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
@@ -41,4 +42,4 @@ ENV GIT_IN_DAPPER true
 RUN mkdir -p /etc/nginx/geoip
 WORKDIR ${DAPPER_SOURCE}
 ENTRYPOINT ["./scripts/entry"]
-CMD ["ci"]
+CMD [${STEP}]
