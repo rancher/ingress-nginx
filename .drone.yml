@@ -7,7 +7,7 @@ platform:
   arch: amd64
 
 steps:
-- name: build
+- name: ci
   image: rancher/dapper:v0.5.3
   commands:
   - dapper ci
@@ -23,9 +23,58 @@ steps:
   when:
     event:
     - tag
-    - push
-    instance:
+  instance:
     - drone-publish.rancher.io
+
+- name: validate
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper validate
+  environment:
+    GIT_IN_DAPPER: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: build
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper build
+  environment:
+    GIT_IN_DAPPER: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper test
+  environment:
+    GIT_IN_DAPPER: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
 
 volumes:
 - name: docker
