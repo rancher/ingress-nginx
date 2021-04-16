@@ -34,9 +34,8 @@ LABEL build_id="${BUILD_ID}"
 WORKDIR  /etc/nginx
 
 RUN apk update
-RUN apk add busybox=1.31.1-r19
+RUN apk fix
 RUN apk upgrade; exit 0
-RUN apk -sv fix
 RUN apk add --no-cache diffutils
 RUN rm -rf /var/cache/apk/*
 
