@@ -34,8 +34,7 @@ LABEL build_id="${BUILD_ID}"
 WORKDIR  /etc/nginx
 
 RUN apk update
-RUN apk fix
-RUN apk upgrade
+RUN apk upgrade; exit 0
 RUN apk add --no-cache diffutils
 RUN rm -rf /var/cache/apk/*
 
