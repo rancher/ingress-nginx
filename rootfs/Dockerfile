@@ -36,7 +36,8 @@ WORKDIR  /etc/nginx
 RUN apk update && \
 rm -rf /var/cache/apk/* && \
 apk add busybox=1.31.1-r19 && \
-apk upgrade && \
+apk upgrade; exit 0 && \
+apk -sv fix && \
 apk add --no-cache \
 diffutils && \
 rm -rf /var/cache/apk/*
