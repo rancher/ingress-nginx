@@ -207,8 +207,8 @@ COMMA := ,
 release: ensure-buildx clean
 	echo "Building binaries..."
 	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
+
 	echo "Building and pushing ingress-nginx image..."
-	docker buildx version
 	@docker buildx build \
 		--no-cache \
 		--progress plain \

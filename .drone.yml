@@ -37,6 +37,7 @@ steps:
     path: /var/run/docker.sock
   when:
     event:
+    - push
     - pull_request
     instance:
     - drone-pr.rancher.io
@@ -70,6 +71,7 @@ steps:
     path: /var/run/docker.sock
   when:
     event:
+    - push
     - pull_request
     instance:
     - drone-pr.rancher.io
