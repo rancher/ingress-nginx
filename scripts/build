@@ -15,3 +15,5 @@ for arch in "${arches[@]}"
 do
    ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 done
+
+PLATFORMS="arm64 amd64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
