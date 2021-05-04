@@ -213,7 +213,6 @@ release: ensure-buildx clean
 	echo "Building and pushing ingress-nginx image..."
 	@docker buildx build \
 		--no-cache \
-		--push \
 		--progress plain \
 		--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
