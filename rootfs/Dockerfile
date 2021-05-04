@@ -33,13 +33,12 @@ LABEL build_id="${BUILD_ID}"
 
 WORKDIR  /etc/nginx
 
-RUN apk update \
-  && apk add apk-tools \
-  && apk upgrade \
-  && apk add --no-cache \
-    diffutils \
-  && rm -rf /var/cache/apk/*
-
+RUN apk update
+RUN apk add busybox
+RUN apk add --no-cache diffutils
+RUN apk upgrade
+RUN rm -rf /var/cache/apk/*
+ 
 COPY --chown=www-data:www-data etc /etc
 COPY --chown=www-data:www-data ingress-controller /ingress-controller
 
