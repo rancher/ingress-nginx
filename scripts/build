@@ -10,6 +10,8 @@ PKG="k8s.io/ingress-nginx"
 rm -rf bin/*
 mkdir -p bin
 
+echo $(uname)
+
 declare -a arches=("arm64" "amd64")
 for arch in "${arches[@]}"
 do
