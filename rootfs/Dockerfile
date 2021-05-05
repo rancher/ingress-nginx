@@ -36,7 +36,6 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/modules_mount/etc/nginx/modules/modules
 WORKDIR  /etc/nginx
 
 RUN apk update \
-  && apk add apk-tools \
   && apk upgrade \
   && apk add --no-cache \
     diffutils \
