@@ -17,3 +17,4 @@ do
 done
 
 PLATFORMS="arm64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
+PLATFORMS="amd64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
