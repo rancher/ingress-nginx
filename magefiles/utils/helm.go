@@ -207,7 +207,7 @@ type IngressChartValue struct {
 		ExtraVolumes          []interface{} `yaml:"extraVolumes"`
 		ExtraInitContainers   []interface{} `yaml:"extraInitContainers"`
 		ExtraModules          []interface{} `yaml:"extraModules"`
-		AdmissionWebhooks struct {
+		AdmissionWebhooks     struct {
 			Annotations          struct{}      `yaml:"annotations"`
 			Enabled              bool          `yaml:"enabled"`
 			ExtraEnvs            []interface{} `yaml:"extraEnvs"`
