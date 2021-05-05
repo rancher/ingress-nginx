@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-cd $(dirname $0)/..
+# cd $(dirname $0)/..
 
-echo Running validation
+# echo Running validation
 
-PACKAGES="$(go list ./... | grep -v /vendor/)"
+# PACKAGES="$(go list ./... | grep -v /vendor/)"
 
-echo Running: go vet
-go vet -mod=readonly ${PACKAGES}
+# echo Running: go vet
+# go vet -mod=readonly ${PACKAGES}
 
-echo Running: go fmt
-test -z "$(go fmt -mod=readonly ${PACKAGES} | tee /dev/stderr)"
+# echo Running: go fmt
+# test -z "$(go fmt -mod=readonly ${PACKAGES} | tee /dev/stderr)"

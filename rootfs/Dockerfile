@@ -34,9 +34,11 @@ LABEL build_id="${BUILD_ID}"
 WORKDIR  /etc/nginx
 
 RUN apk update
-RUN apk add busybox
-RUN apk add --no-cache diffutils
+RUN apk add apk-tools
+RUN sleep 7
 RUN apk upgrade
+RUN apk add --no-cache diffutils
+
 RUN rm -rf /var/cache/apk/*
  
 COPY --chown=www-data:www-data etc /etc
