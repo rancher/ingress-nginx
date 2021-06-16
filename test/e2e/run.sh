@@ -24,6 +24,9 @@ fi
 set -o errexit
 set -o nounset
 set -o pipefail
+set -o xtrace
+
+export VERBOSE=1
 
 cleanup() {
   if [[ "${KUBETEST_IN_DOCKER:-}" == "true" ]]; then
