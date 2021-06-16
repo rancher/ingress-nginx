@@ -12,7 +12,6 @@ steps:
   commands:
   - dapper ci
   environment:
-    GIT_IN_DAPPER: true
     DOCKER_PASS:
       from_secret: docker_password
     DOCKER_USER:
@@ -26,12 +25,23 @@ steps:
   instance:
     - drone-publish.rancher.io
 
+- name: e2e-test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper e2e-test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
 - name: validate
   image: rancher/dapper:v0.5.3
   commands:
   - dapper validate
-  environment:
-    GIT_IN_DAPPER: true
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -47,8 +57,6 @@ steps:
   image: rancher/dapper:v0.5.3
   commands:
   - dapper build
-  environment:
-    GIT_IN_DAPPER: true
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -64,8 +72,6 @@ steps:
   image: rancher/dapper:v0.5.3
   commands:
   - dapper test
-  environment:
-    GIT_IN_DAPPER: true
   volumes:
   - name: docker
     path: /var/run/docker.sock
