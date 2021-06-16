@@ -19,13 +19,16 @@ REPO_INFO=$(git config --get remote.origin.url)
 if [[ -z "$DIRTY" && -n "$GIT_TAG" ]]; then
     VERSION=$GIT_TAG
 else
-    VERSION="${GIT_COMMIT}${DIRTY}"
+    VERSION="$(cat $(dirname $0)/../TAG)-${GIT_COMMIT}${DIRTY}"
 fi
 
 if [ -z "$ARCH" ]; then
     ARCH=amd64
 fi
 
-TAG=${TAG:-$VERSION}
-
-PKG="k8s.io/ingress-nginx"
+export TAG=${TAG:-$VERSION}
+export PKG="k8s.io/ingress-nginx"
+export PLATFORMS=${PLATFORMS:-${ARCH}}
+export REGISTRY=${REGISTRY:-rancher}
+export NGINX_TAG=ingress-${TAG}
+export BASE_IMAGE=${REGISTRY}/nginx:${NGINX_TAG}
