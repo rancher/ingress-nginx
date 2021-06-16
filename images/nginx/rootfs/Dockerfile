@@ -13,17 +13,34 @@
 # limitations under the License.
 
 
-FROM alpine:3.13 as builder
+# Use a multi-stage build
+FROM centos:8 as builder
 
-COPY . /
+RUN yum -y update \
+  && yum -y upgrade \
+  && yum -y install epel-release 'dnf-command(config-manager)' \
+  && yum -y upgrade \
+  && yum config-manager --set-enabled powertools \
+  && yum -y install dnf
+RUN dnf -y install conntrack-tools findutils which
+
+COPY etc /etc
+COPY patches /patches
+COPY build.sh /
+
+RUN /build.sh
+
+
+# Pull static components from alpine
+FROM alpine:3.13 as extras
 
 RUN apk update \
   && apk upgrade \
-  && apk add -U bash \
-  && /build.sh
+  && apk add -U --no-cache dumb-init
 
-# Use a multi-stage build
-FROM alpine:3.13
+
+# With UBI as base image
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -33,43 +50,52 @@ ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
+COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache \
-    bash \
-    openssl \
-    pcre \
-    zlib \
-    geoip \
-    curl ca-certificates \
-    patch \
-    yajl \
-    lmdb \
-    libxml2 \
-    libmaxminddb \
-    yaml-cpp \
-    dumb-init \
-    nano \
-    tzdata \
-  && ln -s /usr/local/nginx/sbin/nginx /sbin/nginx \
-  && addgroup -Sg 101 www-data \
-  && adduser -S -D -H -u 101 -h /usr/local/nginx \
-    -s /sbin/nologin -G www-data -g www-data www-data \
-  && bash -eu -c ' \
-  writeDirs=( \
-    /var/log/nginx \
-    /var/lib/nginx/body \
-    /var/lib/nginx/fastcgi \
-    /var/lib/nginx/proxy \
-    /var/lib/nginx/scgi \
-    /var/lib/nginx/uwsgi \
-    /var/log/audit \
-  ); \
-  for dir in "${writeDirs[@]}"; do \
+RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+RUN microdnf -y update && rm -rf /var/cache/yum
+RUN microdnf -y install lmdb-libs || rpm -iv http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/lmdb-libs-0.9.24-1.el8.x86_64.rpm
+RUN microdnf -y install \
+      util-linux \
+      findutils \
+      which \
+      yajl \
+      GeoIP \
+      libmaxminddb \
+      lmdb
+
+RUN microdnf -y install crypto-policies-scripts
+
+RUN rm -rf /var/cache/yum
+
+RUN ldDirs=" \
+      /usr/local/lib \
+      /usr/local/lib64 \
+  "; \
+  for dir in ${ldDirs}; do \
+    echo "${dir}" >>/etc/ld.so.conf.d/local.conf; \
+  done
+RUN /sbin/ldconfig
+
+RUN ln -s /usr/local/nginx/sbin/nginx /sbin/nginx
+RUN groupadd -rg 101 www-data
+RUN adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+
+RUN writeDirs=" \
+      /var/log/nginx \
+      /var/lib/nginx/body \
+      /var/lib/nginx/fastcgi \
+      /var/lib/nginx/proxy \
+      /var/lib/nginx/scgi \
+      /var/lib/nginx/uwsgi \
+      /var/log/audit \
+  "; \
+  for dir in ${writeDirs}; do \
     mkdir -p ${dir}; \
     chown -R www-data.www-data ${dir}; \
-  done'
+  done
+
+RUN microdnf clean all
 
 EXPOSE 80 443
 

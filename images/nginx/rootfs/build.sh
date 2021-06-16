@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -o xtrace
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -77,43 +78,41 @@ get_src()
 }
 
 # install required packages to build
-apk add \
+dnf install -y \
   bash \
   gcc \
   clang \
-  libc-dev \
   make \
   automake \
-  openssl-dev \
-  pcre-dev \
-  zlib-dev \
-  linux-headers \
-  libxslt-dev \
-  gd-dev \
-  geoip-dev \
-  perl-dev \
-  libedit-dev \
+  openssl-devel \
+  pcre-devel \
+  zlib-devel \
+  kernel-headers \
+  libxslt-devel \
+  gd-devel \
+  geoip-devel \
+  perl-devel \
+  libedit-devel \
   mercurial \
-  alpine-sdk \
   findutils \
   curl ca-certificates \
   patch \
-  libaio-dev \
+  libaio-devel \
   openssl \
   cmake \
   util-linux \
-  lmdb-tools \
+  lmdb \
   wget \
-  curl-dev \
-  libprotobuf \
-  git g++ pkgconf flex bison doxygen yajl-dev lmdb-dev libtool autoconf libxml2 libxml2-dev \
+  curl-devel \
+  protobuf-devel \
+  git gcc-c++ pkgconf flex bison doxygen yajl-devel lmdb-devel libtool autoconf libxml2 libxml2-devel \
   python3 \
-  libmaxminddb-dev \
+  libmaxminddb-devel \
   bc \
   unzip \
   dos2unix \
   yaml-cpp \
-  coreutils
+  libstdc++-static
 
 mkdir -p /etc/nginx
 
@@ -227,8 +226,9 @@ get_src 0fb790e394510e73fdba1492e576aaec0b8ee9ef08e3e821ce253a07719cf7ea \
         "https://github.com/ElvinEfendi/lua-resty-global-throttle/archive/v$LUA_RESTY_GLOBAL_THROTTLE_VERSION.tar.gz"
 
 # improve compilation times
-CORES=$(($(grep -c ^processor /proc/cpuinfo) - 1))
+CORES=$(grep -c ^processor /proc/cpuinfo)
 
+export VERBOSE=1
 export MAKEFLAGS=-j${CORES}
 export CTEST_BUILD_FLAGS=${MAKEFLAGS}
 export HUNTER_JOBS_NUMBER=${CORES}
@@ -639,8 +639,8 @@ writeDirs=( \
   /var/log/nginx \
 );
 
-addgroup -Sg 101 www-data
-adduser -S -D -H -u 101 -h /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+groupadd -rg 101 www-data
+adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};
