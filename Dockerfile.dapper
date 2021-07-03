@@ -10,7 +10,7 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
     DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
 RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 
-FROM ubuntu:18.04
+FROM rancher/hardened-build-base:v1.16.4b7
 ARG DAPPER_HOST_ARCH
 ARG DOCKER_USER
 ARG DOCKER_PASS
@@ -18,13 +18,8 @@ ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
     ARCH=${DAPPER_HOST_ARCH} \
     DOCKER_USER=${DOCKER_USER} \
     DOCKER_PASS=${DOCKER_PASS}
-RUN apt-get update && \
-    apt-get install -y gcc ca-certificates git wget curl vim less file zip make && \
-    rm -f /bin/sh && ln -s /bin/bash /bin/sh
-ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
-    GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
-RUN wget -O - https://dl.google.com/go/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
-    go get github.com/rancher/trash && go get golang.org/x/lint/golint && go get -u github.com/jteeuwen/go-bindata/...
+RUN apk add openssl
+ENV GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
 COPY --from=0 /usr/local/bin/docker /usr/bin/docker
 RUN mkdir -p /.docker/cli-plugins
 COPY --from=0 /.docker/cli-plugins/docker-buildx /.docker/cli-plugins/docker-buildx
@@ -43,6 +38,8 @@ ENV GIT_IN_DAPPER=true
 ENV DOCKER_IN_DOCKER_ENABLED=true
 ENV USER=0
 ENV VERBOSE=1
+# build only works on amd64 for now
+ENV PLATFORMS=${ARCH}
 
 RUN mkdir -p /etc/nginx/geoip
 

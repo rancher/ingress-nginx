@@ -43,26 +43,18 @@ if [ "$missing" = true ]; then
   exit 1
 fi
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export GOARCH=${ARCH}
 
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
+export GO_LDFLAGS="-linkmode=external -buildid= \
     -X ${PKG}/version.RELEASE=${TAG} \
     -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "rootfs/bin/${ARCH}/nginx-ingress-controller" "${PKG}/cmd/nginx"
+    -X ${PKG}/version.REPO=${REPO_INFO}"
 
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
-    -X ${PKG}/version.RELEASE=${TAG} \
-    -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "rootfs/bin/${ARCH}/dbg" "${PKG}/cmd/dbg"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/nginx-ingress-controller" "${PKG}/cmd/nginx"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/dbg" "${PKG}/cmd/dbg"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/wait-shutdown" "${PKG}/cmd/waitshutdown"
 
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
-    -X ${PKG}/version.RELEASE=${TAG} \
-    -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "rootfs/bin/${ARCH}/wait-shutdown" "${PKG}/cmd/waitshutdown"
+go-assert-static.sh rootfs/bin/${ARCH}/*
+go-assert-boring.sh rootfs/bin/${ARCH}/*
+strip rootfs/bin/${ARCH}/*
