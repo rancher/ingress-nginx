@@ -10,7 +10,6 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/json-iterator/go v1.1.11
 	github.com/kylelemons/godebug v1.1.0
-	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
@@ -26,9 +25,9 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/zakjan/cert-chain-resolver v0.0.0-20210427055340-87e10242a981
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	github.com/zakjan/cert-chain-resolver v0.0.0-20200729110141-6b99e360f97a
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
+	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
 	google.golang.org/grpc v1.38.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/pool.v3 v3.1.1
