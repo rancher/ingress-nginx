@@ -152,7 +152,7 @@ func TestGlobalRateLimiting(t *testing.T) {
 			},
 			&Config{},
 			ing_errors.LocationDenied{
-				Reason: errors.Wrap(fmt.Errorf(`time: unknown unit "mb" in duration "2mb"`),
+				Reason: errors.Wrap(fmt.Errorf("time: unknown unit mb in duration 2mb"),
 					"failed to parse 'global-rate-limit-window' value"),
 			},
 		},
