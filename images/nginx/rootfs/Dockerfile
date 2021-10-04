@@ -37,14 +37,8 @@ RUN apk update \
   && apk upgrade \
   && apk add -U --no-cache dumb-init
 
-<<<<<<< HEAD
-# Use a multi-stage build
-FROM alpine:3.14.2
-=======
-
 # With UBI as base image
 FROM registry.access.redhat.com/ubi8/ubi-minimal
->>>>>>> 59729d599... Move build setup to centos8 & ubi8
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -56,40 +50,6 @@ COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-<<<<<<< HEAD
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache \
-    bash \
-    openssl \
-    pcre \
-    zlib \
-    geoip \
-    curl ca-certificates \
-    patch \
-    yajl \
-    lmdb \
-    libxml2 \
-    libmaxminddb \
-    yaml-cpp \
-    dumb-init \
-    nano \
-    tzdata \
-  && ln -s /usr/local/nginx/sbin/nginx /sbin/nginx \
-  && adduser -S -D -H -u 101 -h /usr/local/nginx \
-    -s /sbin/nologin -G www-data -g www-data www-data \
-  && bash -eu -c ' \
-  writeDirs=( \
-    /var/log/nginx \
-    /var/lib/nginx/body \
-    /var/lib/nginx/fastcgi \
-    /var/lib/nginx/proxy \
-    /var/lib/nginx/scgi \
-    /var/lib/nginx/uwsgi \
-    /var/log/audit \
-  ); \
-  for dir in "${writeDirs[@]}"; do \
-=======
 RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 RUN microdnf -y update && rm -rf /var/cache/yum
 RUN microdnf -y install lmdb-libs || rpm -iv http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/lmdb-libs-0.9.24-1.el8.x86_64.rpm
@@ -129,7 +89,6 @@ RUN writeDirs=" \
       /var/log/audit \
   "; \
   for dir in ${writeDirs}; do \
->>>>>>> 59729d599... Move build setup to centos8 & ubi8
     mkdir -p ${dir}; \
     chown -R www-data.www-data ${dir}; \
   done
