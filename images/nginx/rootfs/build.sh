@@ -134,6 +134,8 @@ export LUA_RESTY_IPMATCHER_VERSION=211e0d2eb8bbb558b79368f89948a0bafdc23654
 # Check for recent changes: https://github.com/ElvinEfendi/lua-resty-global-throttle/compare/v0.2.0...main
 export LUA_RESTY_GLOBAL_THROTTLE_VERSION=0.2.0
 
+export LIBMAXMINDDB_VERSION=1.5.2
+
 export BUILD_PATH=/tmp/build
 
 ARCH=$(uname -m)
@@ -194,12 +196,12 @@ dnf install -y \
   protobuf-devel \
   git gcc-c++ pkgconf flex bison doxygen yajl-devel lmdb-devel libtool autoconf libxml2 libxml2-devel \
   python3 \
-  libmaxminddb-devel \
   bc \
   unzip \
   dos2unix \
   yaml-cpp \
-  libstdc++-static
+  libstdc++-static \
+  lua-devel 
 
 mkdir -p /etc/nginx
 
@@ -236,6 +238,10 @@ get_src cbe625cba85291712253db5bc3870d60c709acfad9a8af5a302673d3d201e3ea \
 
 get_src 71de3d0658935db7ccea20e006b35e58ddc7e4c18878b9523f2addc2371e9270 \
         "https://github.com/rnburn/zipkin-cpp-opentracing/archive/$ZIPKIN_CPP_VERSION.tar.gz"
+
+# build libmaxminddb to get the latest version in centos:8
+get_src 5237076d250a5f7c297e331c35a433eeaaf0dc205e070e4db353c9ba10f340a2 \
+        "https://github.com/maxmind/libmaxminddb/releases/download/$LIBMAXMINDDB_VERSION/libmaxminddb-$LIBMAXMINDDB_VERSION.tar.gz"
 
 get_src f8d3ff15520df736c5e20e91d5852ec27e0874566c2afce7dcb979e2298d6980 \
         "https://github.com/SpiderLabs/ModSecurity-nginx/archive/v$MODSECURITY_VERSION.tar.gz"
@@ -525,6 +531,14 @@ cd ssdeep/
 make
 make install
 
+
+cd "$BUILD_PATH/libmaxminddb-$LIBMAXMINDDB_VERSION"
+./configure
+make
+make check
+make install
+ldconfig
+
 # build modsecurity library
 cd "$BUILD_PATH"
 git clone --depth=1 -b $MODSECURITY_LIB_VERSION https://github.com/SpiderLabs/ModSecurity
@@ -783,7 +797,7 @@ writeDirs=( \
 );
 
 groupadd -rg 101 www-data
-adduser -S -D -H -u 101 -h /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};
