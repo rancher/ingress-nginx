@@ -380,6 +380,8 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 
 make
 make install
+# symlink opentracing library to lib64 to work under ubi-minimal image
+ln -s /usr/local/lib64/libdd_opentracing.so /usr/local/lib/libdd_opentracing.so
 
 # build yaml-cpp
 # TODO @timmysilv: remove this and jaeger sed calls once it is fixed in jaeger-client-cpp
