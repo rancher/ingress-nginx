@@ -49,6 +49,8 @@ COPY --from=builder /usr/local /usr/local
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
+# symlink opentracing library to lib64 to work under ubi-minimal image
+RUN ln -s /usr/local/lib64/libdd_opentracing.so /usr/local/lib/libdd_opentracing.so
 
 RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 RUN microdnf -y update && rm -rf /var/cache/yum
@@ -60,7 +62,8 @@ RUN microdnf -y install \
       yajl \
       GeoIP \
       libmaxminddb \
-      lmdb
+      lmdb \
+      wget
 
 RUN microdnf -y install crypto-policies-scripts
 
