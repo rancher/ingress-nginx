@@ -86,3 +86,86 @@ volumes:
 - name: docker
   host:
     path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: ci-s390x
+
+platform:
+  os: linux
+  arch: amd64
+
+node:
+  arch: s390x
+
+steps:
+- name: ci
+  image: rancher/dapper:v0.5.7
+  failure: ignore
+  commands:
+  - dapper -f Dockerfile-s390x.dapper ci 
+  environment:
+    DOCKER_PASS:
+      from_secret: docker_password
+    DOCKER_USER:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: validate
+  image: rancher/dapper:v0.5.7
+  failure: ignore
+  commands:
+  - dapper -f Dockerfile-s390x.dapper validate
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: build
+  image: rancher/dapper:v0.5.7
+  failure: ignore
+  commands:
+  - dapper -f Dockerfile-s390x.dapper build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: test
+  image: rancher/dapper:v0.5.7
+  failure: ignore
+  commands:
+  - dapper -f Dockerfile-s390x.dapper test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
