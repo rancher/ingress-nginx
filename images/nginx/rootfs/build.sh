@@ -166,7 +166,7 @@ get_src()
   rm -rf "$f"
 }
 
-# install required packages to build
+# install required common arch packages to build
 dnf install -y \
   bash \
   gcc \
@@ -179,8 +179,6 @@ dnf install -y \
   kernel-headers \
   libxslt-devel \
   gd-devel \
-  geoip-devel \
-  perl-devel \
   libedit-devel \
   mercurial \
   findutils \
@@ -194,14 +192,30 @@ dnf install -y \
   wget \
   curl-devel \
   protobuf-devel \
-  git gcc-c++ pkgconf flex bison doxygen yajl-devel lmdb-devel libtool autoconf libxml2 libxml2-devel \
+  git gcc-c++ pkgconf flex bison doxygen lmdb-devel libtool autoconf libxml2 libxml2-devel \
   python3 \
   bc \
   unzip \
   dos2unix \
-  yaml-cpp \
-  libstdc++-static \
-  lua-devel 
+  lua-devel \
+  gzip \
+  tar
+
+if [[ ${ARCH} == "s390x" ]]; then
+  dnf install -y \
+    libGeoIP-devel \
+    perl \
+    libyajl-devel \
+    libyaml-cpp0_6 \
+    libstdc++6-devel-gcc7
+else 
+  dnf install -y \
+    geoip-devel \
+    perl-devel \
+    yajl-devel \
+    yaml-cpp \
+    libstdc++-static
+fi
 
 mkdir -p /etc/nginx
 
@@ -799,7 +813,11 @@ writeDirs=( \
 );
 
 groupadd -rg 101 www-data
-adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+if [[ ${ARCH} == "s390x" ]]; then
+  useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+else
+  adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+fi
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};

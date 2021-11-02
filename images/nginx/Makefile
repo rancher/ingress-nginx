@@ -40,6 +40,7 @@ OUTPUT=
 PROGRESS=plain
 build: ensure-buildx
 	docker buildx build \
+		-f rootfs/Dockerfile.$(PLATFORMS) \
 		--platform=$(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
 		--progress=$(PROGRESS) \
 		--pull \
