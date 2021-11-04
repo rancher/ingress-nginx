@@ -117,19 +117,6 @@ steps:
   instance:
     - drone-publish.rancher.io
 
-- name: e2e-test
-  image: rancher/dapper:v0.5.7
-  commands:
-  - dapper e2e-test
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  when:
-    event:
-    - tag
-  instance:
-    - drone-publish.rancher.io
-
 - name: validate
   image: rancher/dapper:v0.5.7
   commands:
