@@ -31,4 +31,4 @@ export PKG="k8s.io/ingress-nginx"
 export PLATFORMS=${PLATFORMS:-${ARCH}}
 export REGISTRY=${REGISTRY:-rancher}
 export NGINX_TAG=ingress-${TAG}
-export BASE_IMAGE=${REGISTRY}/nginx:${NGINX_TAG}
+export BASE_IMAGE=${REGISTRY}/nginx:${NGINX_TAG}-${ARCH}
