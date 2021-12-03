@@ -1,16 +1,5 @@
-FROM docker:19.03.9
-ARG DAPPER_HOST_ARCH
+FROM rancher/hardened-build-base:v1.16.10b7
 ARG STEP=ci
-ENV ARCH=${DAPPER_HOST_ARCH}
-RUN mkdir -p /.docker/cli-plugins
-RUN apk update && apk upgrade && apk add bash && ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
-ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm-v7 \
-    DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm64 \
-    DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64 \
-    DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
-RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
-
-FROM rancher/hardened-build-base:v1.16.4b7
 ARG DAPPER_HOST_ARCH
 ARG DOCKER_USER
 ARG DOCKER_PASS
@@ -18,11 +7,16 @@ ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
     ARCH=${DAPPER_HOST_ARCH} \
     DOCKER_USER=${DOCKER_USER} \
     DOCKER_PASS=${DOCKER_PASS}
-RUN apk add openssl
+RUN apk add openssl docker wget
 ENV GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
-COPY --from=0 /usr/local/bin/docker /usr/bin/docker
 RUN mkdir -p /.docker/cli-plugins
-COPY --from=0 /.docker/cli-plugins/docker-buildx /.docker/cli-plugins/docker-buildx
+RUN  ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
+ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm-v7 \
+    DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm64 \
+    DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64 \
+    DOCKER_BUILDX_URL_s390x=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-s390x \
+    DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
+RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 ENV DOCKER_CLI_EXPERIMENTAL=enabled \
     DOCKER_CONFIG=/.docker
 RUN docker buildx install
