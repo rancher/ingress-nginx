@@ -22,14 +22,18 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
+  ingressClassName: nginx
   rules:
   - host: test.com
     http:
       paths:
       - path: /foo/.*
+        pathType: Prefix
         backend:
-          serviceName: test
-          servicePort: 80
+          service:
+            name: test
+            port:
+              number: 80
 ```
 
 The preceding ingress definition would translate to the following location block within the NGINX configuration for the `test.com` server:
@@ -56,18 +60,25 @@ kind: Ingress
 metadata:
   name: test-ingress-1
 spec:
+  ingressClassName: nginx
   rules:
   - host: test.com
     http:
       paths:
       - path: /foo/bar
+        pathType: Prefix
         backend:
-          serviceName: service1
-          servicePort: 80
+          service:
+            name: service1
+            port:
+              number: 80
       - path: /foo/bar/
+        pathType: Prefix
         backend:
-          serviceName: service2
-          servicePort: 80
+          service:
+            name: service2
+            port:
+              number: 80
 ```
 
 ```yaml
@@ -78,14 +89,18 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
+  ingressClassName: nginx
   rules:
   - host: test.com
     http:
       paths:
       - path: /foo/bar/(.+)
+        pathType: Prefix
         backend:
-          serviceName: service3
-          servicePort: 80
+          service:
+            name: service3
+            port: 
+              number: 80
 ```
 
 The ingress controller would define the following location blocks, in order of descending length, within the NGINX template for the `test.com` server:
@@ -132,18 +147,25 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
+  ingressClassName: nginx
   rules:
   - host: test.com
     http:
       paths:
       - path: /foo/bar/bar
+        pathType: Prefix
         backend:
-          serviceName: test
-          servicePort: 80
+          service:
+            name: test
+            port: 
+              number: 80
       - path: /foo/bar/[A-Z0-9]{3}
+        pathType: Prefix
         backend:
-          serviceName: test
-          servicePort: 80
+          service:
+            name: test
+            port: 
+              number: 80
 ```
 
 The ingress controller would define the following location blocks (in this order) within the NGINX template for the `test.com` server:

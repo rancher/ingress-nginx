@@ -36,6 +36,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"k8s.io/ingress-nginx/internal/file"
@@ -265,6 +266,27 @@ func TestCheckIngress(t *testing.T) {
 			ing.ObjectMeta.Annotations["nginx.ingress.kubernetes.io/server-snippet"] = "bla"
 			if err := nginx.CheckIngress(ing); err == nil {
 				t.Errorf("with a snippet annotation, ingresses using the default should be rejected")
+			}
+		})
+
+		t.Run("When invalid directives are used in annotation values", func(t *testing.T) {
+			nginx.store = fakeIngressStore{
+				ingresses: []*ingress.Ingress{},
+				configuration: ngx_config.Configuration{
+					AnnotationValueWordBlocklist: "invalid_directive, another_directive",
+				},
+			}
+			nginx.command = testNginxTestCommand{
+				t:   t,
+				err: nil,
+			}
+			ing.ObjectMeta.Annotations["nginx.ingress.kubernetes.io/custom-headers"] = "invalid_directive"
+			if err := nginx.CheckIngress(ing); err == nil {
+				t.Errorf("with an invalid value in annotation the ingress should be rejected")
+			}
+			ing.ObjectMeta.Annotations["nginx.ingress.kubernetes.io/custom-headers"] = "another_directive"
+			if err := nginx.CheckIngress(ing); err == nil {
+				t.Errorf("with an invalid value in annotation the ingress should be rejected")
 			}
 		})
 
@@ -2361,6 +2383,7 @@ func newNGINXController(t *testing.T) *NGINXController {
 
 	storer := store.New(
 		ns,
+		labels.Nothing(),
 		fmt.Sprintf("%v/config", ns),
 		fmt.Sprintf("%v/tcp", ns),
 		fmt.Sprintf("%v/udp", ns),
@@ -2424,6 +2447,7 @@ func newDynamicNginxController(t *testing.T, setConfigMap func(string) *v1.Confi
 
 	storer := store.New(
 		ns,
+		labels.Nothing(),
 		fmt.Sprintf("%v/config", ns),
 		fmt.Sprintf("%v/tcp", ns),
 		fmt.Sprintf("%v/udp", ns),

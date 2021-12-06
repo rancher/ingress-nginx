@@ -3,13 +3,18 @@ kind: Ingress
 metadata:
   name: ingress-nginx
 spec:
+  ingressClassName: nginx
   tls:
   # This assumes tls-secret exists.
   - secretName: tls-secret
   rules:
   - http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           # This assumes http-svc exists and routes to healthy endpoints.
-          serviceName: http-svc
-          servicePort: 80
+          service:
+            name: http-svc
+            port:
+              number: 80

@@ -63,6 +63,9 @@ const (
 
 // Writer is the interface to render a template
 type Writer interface {
+	// Write renders the template.
+	// NOTE: Implementors must ensure that the content of the returned slice is not modified by the implementation
+	// after the return of this function.
 	Write(conf config.TemplateConfig) ([]byte, error)
 }
 
@@ -202,7 +205,12 @@ func (t *Template) Write(conf config.TemplateConfig) ([]byte, error) {
 		return nil, err
 	}
 
-	return outCmdBuf.Bytes(), nil
+	// make a copy to ensure that we are no longer modifying the content of the buffer
+	out := outCmdBuf.Bytes()
+	res := make([]byte, len(out))
+	copy(res, out)
+
+	return res, nil
 }
 
 var (
@@ -268,6 +276,7 @@ var (
 		"shouldLoadAuthDigestModule":         shouldLoadAuthDigestModule,
 		"shouldLoadInfluxDBModule":           shouldLoadInfluxDBModule,
 		"buildServerName":                    buildServerName,
+		"buildCorsOriginRegex":               buildCorsOriginRegex,
 	}
 )
 
@@ -1440,7 +1449,7 @@ func httpsListener(addresses []string, co string, tc config.TemplateConfig) []st
 	return out
 }
 
-func buildOpentracingForLocation(isOTEnabled bool, location *ingress.Location) string {
+func buildOpentracingForLocation(isOTEnabled bool, isOTTrustSet bool, location *ingress.Location) string {
 	isOTEnabledInLoc := location.Opentracing.Enabled
 	isOTSetInLoc := location.Opentracing.Set
 
@@ -1448,25 +1457,21 @@ func buildOpentracingForLocation(isOTEnabled bool, location *ingress.Location) s
 		if isOTSetInLoc && !isOTEnabledInLoc {
 			return "opentracing off;"
 		}
-
-		opc := opentracingPropagateContext(location)
-		if opc != "" {
-			opc = fmt.Sprintf("opentracing on;\n%v", opc)
-		}
-
-		return opc
+	} else if !isOTSetInLoc || !isOTEnabledInLoc {
+		return ""
 	}
 
-	if isOTSetInLoc && isOTEnabledInLoc {
-		opc := opentracingPropagateContext(location)
-		if opc != "" {
-			opc = fmt.Sprintf("opentracing on;\n%v", opc)
-		}
-
-		return opc
+	opc := opentracingPropagateContext(location)
+	if opc != "" {
+		opc = fmt.Sprintf("opentracing on;\n%v", opc)
 	}
 
-	return ""
+	if (!isOTTrustSet && !location.Opentracing.TrustSet) ||
+		(location.Opentracing.TrustSet && !location.Opentracing.TrustEnabled) {
+		opc = opc + "\nopentracing_trust_incoming_span off;"
+	}
+
+	return opc
 }
 
 // shouldLoadOpentracingModule determines whether or not the Opentracing module needs to be loaded.
@@ -1671,4 +1676,30 @@ func convertGoSliceIntoLuaTable(goSliceInterface interface{}, emptyStringAsNil b
 	default:
 		return "", fmt.Errorf("could not process type: %s", kind)
 	}
+}
+
+func buildOriginRegex(origin string) string {
+	origin = regexp.QuoteMeta(origin)
+	origin = strings.Replace(origin, "\\*", `[A-Za-z0-9\-]+`, 1)
+	return fmt.Sprintf("(%s)", origin)
+}
+
+func buildCorsOriginRegex(corsOrigins []string) string {
+	if len(corsOrigins) == 1 && corsOrigins[0] == "*" {
+		return "set $http_origin *;\nset $cors 'true';"
+	}
+
+	var originsRegex string = "if ($http_origin ~* ("
+	for i, origin := range corsOrigins {
+		originTrimmed := strings.TrimSpace(origin)
+		if len(originTrimmed) > 0 {
+			builtOrigin := buildOriginRegex(originTrimmed)
+			originsRegex += builtOrigin
+			if i != len(corsOrigins)-1 {
+				originsRegex = originsRegex + "|"
+			}
+		}
+	}
+	originsRegex = originsRegex + ")$ ) { set $cors 'true'; }"
+	return originsRegex
 }

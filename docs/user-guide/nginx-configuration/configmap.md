@@ -30,6 +30,7 @@ The following table shows a configuration option's name, type, and the default v
 |[add-headers](#add-headers)|string|""|
 |[allow-backend-server-header](#allow-backend-server-header)|bool|"false"|
 |[allow-snippet-annotations](#allow-snippet-annotations)|bool|true|
+|[annotation-value-word-blocklist](#annotation-value-word-blocklist)|string array|""|
 |[hide-headers](#hide-headers)|string array|empty|
 |[access-log-params](#access-log-params)|string|""|
 |[access-log-path](#access-log-path)|string|"/var/log/nginx/access.log"|
@@ -98,6 +99,7 @@ The following table shows a configuration option's name, type, and the default v
 |[use-geoip2](#use-geoip2)|bool|"false"|
 |[enable-brotli](#enable-brotli)|bool|"false"|
 |[brotli-level](#brotli-level)|int|4|
+|[brotli-min-length](#brotli-min-length)|int|20|
 |[brotli-types](#brotli-types)|string|"application/xml+rss application/atom+xml application/javascript application/x-javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/svg+xml image/x-icon text/css text/javascript text/plain text/x-component"|
 |[use-http2](#use-http2)|bool|"true"|
 |[gzip-level](#gzip-level)|int|1|
@@ -221,6 +223,20 @@ Enables Ingress to parse and add *-snippet annotations/directives created by the
 Warning: We recommend enabling this option only if you TRUST users with permission to create Ingress objects, as this 
 may allow a user to add restricted configurations to the final nginx.conf file
 
+## annotation-value-word-blocklist
+
+Contains a comma-separated value of chars/words that are well known of being used to abuse Ingress configuration 
+and must be blocked. Related to [CVE-2021-25742](https://github.com/kubernetes/ingress-nginx/issues/7837) 
+
+When an annotation is detected with a value that matches one of the blocked bad words, the whole Ingress won't be configured.
+
+_**default:**_ `""`
+
+When doing this, the default blocklist is override, which means that the Ingress admin should add all the words
+that should be blocked, here is a suggested block list.
+
+_**suggested:**_ `"load_module,lua_package,_by_lua,location,root,proxy_pass,serviceaccount,{,},',\"`
+
 ## hide-headers
 
 Sets additional header that will not be passed from the upstream server to the client response.
@@ -311,7 +327,7 @@ _References:_
 
 ## disable-access-log
 
-Disables the Access Log from the entire Ingress Controller. _**default:**_ '"false"'
+Disables the Access Log from the entire Ingress Controller. _**default:**_ `false`
 
 _References:_
 [http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log)
@@ -495,7 +511,7 @@ _**default:**_ "0.0.0.0/0"
 
 ## proxy-set-headers
 
-Sets custom headers from named configmap before sending traffic to backends. The value format is namespace/name.  See [example](https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/custom-headers)
+Sets custom headers from named configmap before sending traffic to backends. The value format is namespace/name.  See [example](https://kubernetes.github.io/ingress-nginx/examples/customization/custom-headers/)
 
 ## server-name-hash-max-size
 
@@ -664,6 +680,10 @@ The default mime type list to compress is: `application/xml+rss application/atom
 ## brotli-level
 
 Sets the Brotli Compression Level that will be used. _**default:**_ 4
+
+## brotli-min-length
+
+Minimum length of responses, in bytes, that will be eligible for brotli compression. _**default:**_ 20
 
 ## brotli-types
 

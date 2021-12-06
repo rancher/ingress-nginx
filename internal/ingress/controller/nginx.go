@@ -122,6 +122,7 @@ func NewNGINXController(config *Configuration, mc metric.Collector) *NGINXContro
 
 	n.store = store.New(
 		config.Namespace,
+		config.WatchNamespaceSelector,
 		config.ConfigMapName,
 		config.TCPConfigMapName,
 		config.UDPConfigMapName,
@@ -241,7 +242,8 @@ type NGINXController struct {
 
 	store store.Storer
 
-	metricCollector metric.Collector
+	metricCollector    metric.Collector
+	admissionCollector metric.Collector
 
 	validationWebhookServer *http.Server
 

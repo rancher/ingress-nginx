@@ -13,10 +13,10 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx
@@ -28,10 +28,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx-controller
@@ -51,10 +51,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
   name: ingress-nginx
 rules:
@@ -66,6 +66,7 @@ rules:
       - nodes
       - pods
       - secrets
+      - namespaces
     verbs:
       - list
       - watch
@@ -118,10 +119,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
   name: ingress-nginx
 roleRef:
@@ -138,10 +139,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx
@@ -222,10 +223,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx
@@ -244,10 +245,10 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx-controller-admission
@@ -269,17 +270,16 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '60'
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-west-2:XXXXXXXX:certificate/XXXXXX-XXXXXXX-XXXXXXX-XXXXXXXX
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
-    service.beta.kubernetes.io/aws-load-balancer-type: elb
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx-controller
@@ -311,10 +311,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: ingress-nginx-controller
@@ -337,7 +337,7 @@ spec:
       dnsPolicy: ClusterFirst
       containers:
         - name: controller
-          image: k8s.gcr.io/ingress-nginx/controller:v1.0.4@sha256:545cff00370f28363dad31e3b59a94ba377854d3a11f18988f5f9e56841ef9ef
+          image: k8s.gcr.io/ingress-nginx/controller:v1.1.0@sha256:f766669fdcf3dc26347ed273a55e754b427eb4411ee075a53f30718b4499076a
           imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:
@@ -429,10 +429,10 @@ apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
   name: nginx
@@ -447,10 +447,10 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
   name: ingress-nginx-admission
@@ -487,10 +487,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 ---
@@ -503,10 +503,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 rules:
@@ -527,10 +527,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 roleRef:
@@ -552,10 +552,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 rules:
@@ -577,10 +577,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 roleRef:
@@ -602,10 +602,10 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 spec:
@@ -613,10 +613,10 @@ spec:
     metadata:
       name: ingress-nginx-admission-create
       labels:
-        helm.sh/chart: ingress-nginx-4.0.6
+        helm.sh/chart: ingress-nginx-4.0.10
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/instance: ingress-nginx
-        app.kubernetes.io/version: 1.0.4
+        app.kubernetes.io/version: 1.1.0
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: admission-webhook
     spec:
@@ -634,6 +634,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          securityContext:
+            allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       serviceAccountName: ingress-nginx-admission
       nodeSelector:
@@ -652,10 +654,10 @@ metadata:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   labels:
-    helm.sh/chart: ingress-nginx-4.0.6
+    helm.sh/chart: ingress-nginx-4.0.10
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 1.0.4
+    app.kubernetes.io/version: 1.1.0
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
 spec:
@@ -663,10 +665,10 @@ spec:
     metadata:
       name: ingress-nginx-admission-patch
       labels:
-        helm.sh/chart: ingress-nginx-4.0.6
+        helm.sh/chart: ingress-nginx-4.0.10
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/instance: ingress-nginx
-        app.kubernetes.io/version: 1.0.4
+        app.kubernetes.io/version: 1.1.0
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: admission-webhook
     spec:
@@ -686,6 +688,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          securityContext:
+            allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       serviceAccountName: ingress-nginx-admission
       nodeSelector:

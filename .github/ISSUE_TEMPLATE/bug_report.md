@@ -43,18 +43,19 @@ kubectl exec -it $POD_NAME -n $POD_NAMESPACE -- /nginx-ingress-controller --vers
 - **OS** (e.g. from /etc/os-release):
 - **Kernel** (e.g. `uname -a`):
 - **Install tools**:
-  - `Please mention how/where was clsuter created like kubeadm/kops/minikube/kind etc. `
+  - `Please mention how/where was the cluster created like kubeadm/kops/minikube/kind etc. `
 - **Basic cluster related info**:
   - `kubectl version`
   - `kubectl get nodes -o wide`
 
 - **How was the ingress-nginx-controller installed**:
-  - If helm was used then please show output of `helm ls -A`
+  - If helm was used then please show output of `helm ls -A | grep -i ingress`
   - If helm was used then please show output of `helm -n <ingresscontrollernamepspace> get values <helmreleasename>`
-  - If helm was not used, then please explain how the ingress-nginx-controller was installed or copy/paste the command used to install the controller below
+  - If helm was not used, then copy/paste the complete precise command used to install the controller, along with the flags and options used
   - if you have more than one instance of the ingress-nginx-controller installed in the same cluster, please provide details for all the instances
 
 - **Current State of the controller**:
+  - `kubectl describe ingressclasses`
   - `kubectl -n <ingresscontrollernamespace> get all -A -o wide`
   - `kubectl -n <ingresscontrollernamespace> describe po <ingresscontrollerpodname>`
   - `kubectl -n <ingresscontrollernamespace> describe svc <ingresscontrollerservicename>`
@@ -100,19 +101,25 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main
 ## Create an ingress (please add any additional annotation required)
 
 echo "
-  apiVersion: networking.k8s.io/v1beta1
+  apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
     name: foo-bar
+    annotations:
+      kubernetes.io/ingress.class: nginx
   spec:
+    ingressClassName: nginx # omit this if you're on controller version below 1.0.0
     rules:
     - host: foo.bar
       http:
         paths:
-        - backend:
-            serviceName: http-svc
-            servicePort: 80
-          path: /
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: http-svc
+              port: 
+                number: 80
 " | kubectl apply -f -
 
 ## make a request

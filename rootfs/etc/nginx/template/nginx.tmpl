@@ -320,6 +320,7 @@ http {
     {{ if $cfg.EnableBrotli }}
     brotli on;
     brotli_comp_level {{ $cfg.BrotliLevel }};
+    brotli_min_length {{ $cfg.BrotliMinLength }};
     brotli_types {{ $cfg.BrotliTypes }};
     {{ end }}
 
@@ -866,8 +867,24 @@ stream {
 {{ define "CORS" }}
      {{ $cors := .CorsConfig }}
      # Cors Preflight methods needs additional options and different Return Code
+     {{ if $cors.CorsAllowOrigin }}
+        {{ buildCorsOriginRegex $cors.CorsAllowOrigin }}
+     {{ end }}
      if ($request_method = 'OPTIONS') {
-        more_set_headers 'Access-Control-Allow-Origin: {{ $cors.CorsAllowOrigin }}';
+        set $cors ${cors}options;
+     }
+
+     if ($cors = "true") {
+        more_set_headers 'Access-Control-Allow-Origin: $http_origin';
+        {{ if $cors.CorsAllowCredentials }} more_set_headers 'Access-Control-Allow-Credentials: {{ $cors.CorsAllowCredentials }}'; {{ end }}
+        more_set_headers 'Access-Control-Allow-Methods: {{ $cors.CorsAllowMethods }}';
+        more_set_headers 'Access-Control-Allow-Headers: {{ $cors.CorsAllowHeaders }}';
+        {{ if not (empty $cors.CorsExposeHeaders) }} more_set_headers 'Access-Control-Expose-Headers: {{ $cors.CorsExposeHeaders }}'; {{ end }}
+        more_set_headers 'Access-Control-Max-Age: {{ $cors.CorsMaxAge }}';
+     }
+
+     if ($cors = "trueoptions") {
+        more_set_headers 'Access-Control-Allow-Origin: $http_origin';
         {{ if $cors.CorsAllowCredentials }} more_set_headers 'Access-Control-Allow-Credentials: {{ $cors.CorsAllowCredentials }}'; {{ end }}
         more_set_headers 'Access-Control-Allow-Methods: {{ $cors.CorsAllowMethods }}';
         more_set_headers 'Access-Control-Allow-Headers: {{ $cors.CorsAllowHeaders }}';
@@ -877,11 +894,6 @@ stream {
         more_set_headers 'Content-Length: 0';
         return 204;
      }
-
-        more_set_headers 'Access-Control-Allow-Origin: {{ $cors.CorsAllowOrigin }}';
-        {{ if $cors.CorsAllowCredentials }} more_set_headers 'Access-Control-Allow-Credentials: {{ $cors.CorsAllowCredentials }}'; {{ end }}
-        {{ if not (empty $cors.CorsExposeHeaders) }} more_set_headers 'Access-Control-Expose-Headers: {{ $cors.CorsExposeHeaders }}'; {{ end }}
-
 {{ end }}
 
 {{/* definition of server-template to avoid repetitions with server-alias */}}
@@ -1096,7 +1108,7 @@ stream {
             set $location_path  {{ $ing.Path | escapeLiteralDollar | quote }};
             set $global_rate_limit_exceeding n;
 
-            {{ buildOpentracingForLocation $all.Cfg.EnableOpentracing $location }}
+            {{ buildOpentracingForLocation $all.Cfg.EnableOpentracing $all.Cfg.OpentracingTrustIncomingSpan $location }}
 
             {{ if $location.Mirror.Source }}
             mirror {{ $location.Mirror.Source }};

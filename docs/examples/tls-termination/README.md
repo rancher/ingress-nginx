@@ -22,15 +22,19 @@ spec:
       # This assumes tls-secret exists and the SSL
       # certificate contains a CN for foo.bar.com
       secretName: tls-secret
+  ingressClassName: nginx
   rules:
     - host: foo.bar.com
       http:
         paths:
         - path: /
+          pathType: Prefix
           backend:
             # This assumes http-svc exists and routes to healthy endpoints
-            serviceName: http-svc
-            servicePort: 80
+            service:
+              name: http-svc
+              port:
+                number: 80
 ```
 
 The following command instructs the controller to terminate traffic using the provided
