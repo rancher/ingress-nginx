@@ -320,3 +320,40 @@ jobs:
     with:
       k8s-version: ${{ matrix.k8s }}
       variation: "CHROOT"
+
+  rancher-validate: 
+    runs-on: ubuntu-latest
+    env:
+      PLATFORMS: linux/amd64
+    container:
+      image: rancher/dapper:v0.5.3
+      env:
+        GIT_IN_DAPPER: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: validate
+        run: |
+          dapper validate
+
+  rancher-build:
+    needs: rancher-validate
+    runs-on: ubuntu-latest
+    env:
+      PLATFORMS: linux/amd64
+    container:
+      image: rancher/dapper:v0.5.3
+      env:
+        GIT_IN_DAPPER: true
+    steps:
+      - name: Install git
+        run: |
+          apk add --no-cache git
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: build
+        run: |
+          dapper build
