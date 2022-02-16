@@ -2,8 +2,8 @@ name: release
 
 on:
   push:
-    tags:        
-      - '*' 
+    tags:
+      - '*'
 
 jobs:
 
@@ -16,6 +16,10 @@ jobs:
         DOCKER_USER: ${{ secrets.docker_username }}
         DOCKER_PASS: ${{ secrets.docker_password }}
     steps:
+      - name: Add git
+        run: |
+          apk add --no-cache git
+
       - name: Checkout
         uses: actions/checkout@v2
 
