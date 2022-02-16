@@ -441,6 +441,10 @@ jobs:
       env:
         GIT_IN_DAPPER: true
     steps:
+      - name: Install git
+        run: |
+          apk add --no-cache git
+
       - name: Checkout
         uses: actions/checkout@v2
 
