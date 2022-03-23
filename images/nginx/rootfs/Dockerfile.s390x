@@ -12,16 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Pull static components from alpine
-FROM alpine:3.13 as extras
 
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache dumb-init
-
-# TODO: Shift to multi stage like amd64. Build image will be leap-dnf 
-# and SLE BCI will be runtime image.
-FROM registry.opensuse.org/opensuse/leap-dnf:15.3
+# Use a multi-stage build
+FROM registry.opensuse.org/opensuse/leap-dnf:15.3 as builder
 
 RUN dnf makecache \
   && dnf -y upgrade
@@ -33,13 +26,27 @@ COPY build.sh /
 
 RUN /build.sh
 
+# Pull static components from alpine
+FROM alpine:3.13 as extras
+
+RUN apk update \
+  && apk upgrade \
+  && apk add -U --no-cache dumb-init
+
+# With UBI as base image
+FROM registry.opensuse.org/opensuse/leap-dnf:15.3
+
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
+
 ENV LUA_PATH="/usr/local/share/luajit-2.1.0-beta3/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/lib/lua/?.lua;;"
 ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /opt /opt
+COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-RUN microdnf -y install \
+RUN dnf -y install \
       util-linux \
       findutils \
       which \
@@ -51,7 +58,9 @@ RUN microdnf -y install \
 
 RUN dnf -y install 'dnf-command(config-manager)'
 RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/security:tls/openSUSE_Leap_15.3/security:tls.repo
-RUN microdnf -y install crypto-policies-scripts
+RUN dnf -y install crypto-policies-scripts
+
+RUN rm -rf /var/cache/yum
 
 RUN ldDirs=" \
       /usr/local/lib \
@@ -63,6 +72,8 @@ RUN ldDirs=" \
 RUN /sbin/ldconfig
 
 RUN ln -s /usr/local/nginx/sbin/nginx /sbin/nginx
+RUN groupadd -rg 101 www-data
+RUN useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 RUN writeDirs=" \
       /var/log/nginx \
@@ -78,7 +89,7 @@ RUN writeDirs=" \
     chown -R www-data.www-data ${dir}; \
   done
 
-RUN microdnf clean all
+RUN dnf clean all
 
 EXPOSE 80 443
 
