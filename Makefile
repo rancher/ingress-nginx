@@ -55,7 +55,7 @@ endif
 
 REGISTRY ?= gcr.io/k8s-staging-ingress-nginx
 
-BASE_IMAGE ?= k8s.gcr.io/ingress-nginx/nginx:cd6f88af3f976a180ed966dadf273473ae768dfa@sha256:18f91105e4099941d2efee71a8ec52c6ef7702d5f7e8214b7cb5f25cc10a0b41
+BASE_IMAGE ?= rancher/nginx:ingress-v1.2.1-hardened
 
 GOARCH=$(ARCH)
 
@@ -239,15 +239,4 @@ release: ensure-buildx clean
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller:$(TAG) rootfs
-	
-	@docker buildx build \
-		--no-cache \
-		--push \
-		--progress plain \
-		--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) \
-		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
-		--build-arg VERSION="$(TAG)" \
-		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
-		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile.chroot
+		-t $(REGISTRY)/nginx-ingress-controller:$(TAG)-$(PLATFORMS) rootfs
