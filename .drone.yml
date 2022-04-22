@@ -219,6 +219,21 @@ steps:
     when:
       event:
         - tag
+  - name: push-manifest-chroot
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      platforms:
+        - linux/amd64
+        - linux/s390x
+      target: "rancher/nginx-ingress-controller-chroot:${DRONE_TAG}"
+      template: "rancher/nginx-ingress-controller-chroot:${DRONE_TAG}-ARCH"
+    when:
+      event:
+        - tag
 
 volumes:
   - name: docker
