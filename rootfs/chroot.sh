@@ -45,7 +45,7 @@ cp /etc/passwd /etc/group /chroot/etc/
 cp -a /usr/* /chroot/usr/
 cp -a /etc/nginx/* /chroot/etc/nginx/
 # no need to copy each library since 
-cp /lib64/libcrypto* /lib64/libssl* /lib64/libz* /chroot/lib64/
+cp /lib64/libcrypto* /lib64/libssl* /lib64/libz* /chroot/lib64/ || true
 mknod -m 0666 /chroot/dev/null c 1 3
 mknod -m 0666 /chroot/dev/random c 1 8
 mknod -m 0666 /chroot/dev/urandom c 1 9
