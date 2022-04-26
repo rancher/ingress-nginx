@@ -26,6 +26,7 @@ steps:
     - drone-publish.rancher.io
 
 - name: e2e-test
+  failure: ignore
   image: rancher/dapper:v0.5.3
   commands:
   - dapper e2e-test
@@ -101,6 +102,7 @@ node:
 
 steps:
 - name: ci
+  failure: ignore
   image: rancher/dapper:v0.5.7
   commands:
   - dapper ci
