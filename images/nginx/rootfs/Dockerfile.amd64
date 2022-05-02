@@ -65,9 +65,9 @@ RUN zypper ref && \
       which && \
     zypper clean --all
 
-RUN zypper addrepo -ecGKp 100 http://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed && \
+RUN zypper addrepo -ecKGp 100 https://download.opensuse.org/repositories/security:/tls/openSUSE_Leap_15.3/ leap && \
     zypper install -y crypto-policies-scripts && \
-    zypper rr tumbleweed && \
+    zypper rr leap && \
     zypper clean --all
 
 RUN ldDirs=" \
