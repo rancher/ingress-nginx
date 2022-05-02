@@ -41,8 +41,8 @@ RUN apk update \
   && apk upgrade \
   && apk add -U --no-cache dumb-init
 
-# With UBI as base image
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+# With BCI as base image
+FROM registry.suse.com/bci/bci-base:latest
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -54,22 +54,21 @@ COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-RUN microdnf -y update && rm -rf /var/cache/yum
-RUN microdnf -y install lmdb-libs || rpm -iv http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/lmdb-libs-0.9.24-1.el8.x86_64.rpm
-RUN microdnf -y install \
-      util-linux \
-      findutils \
-      which \
-      yajl \
+RUN zypper ref && \
+    zypper update -y && \
+    zypper install -y 'liblmdb*' && \
+    zypper install -y \
       GeoIP \
-      libmaxminddb \
-      lmdb \
-      wget
+      libmaxminddb0 \
+      libyajl2 \
+      wget \
+      which && \
+    zypper clean --all
 
-RUN microdnf -y install crypto-policies-scripts
-
-RUN rm -rf /var/cache/yum
+RUN zypper addrepo -ecGKp 100 http://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed && \
+    zypper install -y crypto-policies-scripts && \
+    zypper rr tumbleweed && \
+    zypper clean --all
 
 RUN ldDirs=" \
       /usr/local/lib \
@@ -97,8 +96,6 @@ RUN writeDirs=" \
     mkdir -p ${dir}; \
     chown -R www-data.www-data ${dir}; \
   done
-
-RUN microdnf clean all
 
 EXPOSE 80 443
 
