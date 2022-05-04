@@ -768,11 +768,7 @@ writeDirs=( \
 );
 
 groupadd -rg 101 www-data
-if [[ ${ARCH} == "s390x" ]]; then
-  useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
-else
-  adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
-fi
+useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};

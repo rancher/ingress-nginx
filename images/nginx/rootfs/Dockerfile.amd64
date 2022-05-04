@@ -81,7 +81,7 @@ RUN /sbin/ldconfig
 
 RUN ln -s /usr/local/nginx/sbin/nginx /sbin/nginx
 RUN groupadd -rg 101 www-data
-RUN adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+RUN useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 RUN writeDirs=" \
       /var/log/nginx \
