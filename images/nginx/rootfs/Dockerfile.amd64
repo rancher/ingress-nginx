@@ -65,8 +65,8 @@ RUN zypper ref && \
       which && \
     zypper clean --all
 
-RUN zypper addrepo -ecKGp 100 https://download.opensuse.org/repositories/security:/tls/openSUSE_Leap_15.3/ leap && \
-    zypper install -y crypto-policies-scripts && \
+RUN zypper addrepo -ecKp 100 https://download.opensuse.org/repositories/security:/tls/openSUSE_Leap_15.3/ leap && \
+    zypper --gpg-auto-import-keys install -y crypto-policies-scripts && \
     zypper rr leap && \
     zypper clean --all
 
