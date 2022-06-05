@@ -4,9 +4,13 @@ set -e -x
 source $(dirname $0)/version
 cd $(dirname $0)/..
 
-# manifest push happens as part of make release, so login is required inside the dapper container
-echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-
-TAG=${NGINX_TAG} make -C images/nginx push
-
-make release
+# If #GIT_TAG is present, then we release and push to registry
+if [[ -n "$GIT_TAG" ]]; then
+    # manifest push happens as part of make release, so login is required inside the dapper container
+    echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+    TAG=${NGINX_TAG} make -C images/nginx push
+    make release-ingress-controller
+else
+    TAG=${NGINX_TAG} make -C images/nginx build
+    make build-ingress-controller
+fi
