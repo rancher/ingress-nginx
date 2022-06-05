@@ -223,18 +223,20 @@ PLATFORMS ?= amd64 arm arm64 s390x
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 COMMA := ,
+OUTPUT=
 
-.PHONY: release # Build a multi-arch docker image
-release: ensure-buildx clean
+release-ingress-controller: OUTPUT=--push
+release-ingress-controller: build-ingress-controller
+
+build-ingress-controller: ensure-buildx clean
 	echo "Building binaries..."
 	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
 	echo "Building and pushing ingress-nginx image..."
 	@docker buildx build \
 		--no-cache \
-		--push \
 		--progress plain \
-		--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) \
+		--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
@@ -244,9 +246,8 @@ release: ensure-buildx clean
 
 	@docker buildx build \
 			--no-cache \
-			--push \
 			--progress plain \
-			--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) \
+			--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
 			--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 			--build-arg VERSION="$(TAG)" \
 			--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
