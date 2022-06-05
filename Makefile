@@ -230,7 +230,7 @@ release: ensure-buildx clean
 	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
 	echo "Building and pushing ingress-nginx image..."
-	@docker buildx build \
+	docker build \
 		--no-cache \
 		--push \
 		--progress plain \
@@ -242,7 +242,7 @@ release: ensure-buildx clean
 		--build-arg BUILD_ID="$(BUILD_ID)" \
 		-t $(REGISTRY)/nginx-ingress-controller:$(TAG)-$(PLATFORMS) rootfs
 
-	@docker buildx build \
+	docker build \
 			--no-cache \
 			--push \
 			--progress plain \

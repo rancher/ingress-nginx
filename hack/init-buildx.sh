@@ -62,7 +62,3 @@ if [ "$(uname)" == 'Linux' ] && [ ${ARCH} != "s390x" ]; then
   docker run --rm --privileged tonistiigi/binfmt --uninstall qemu-aarch64 && docker run --rm --privileged tonistiigi/binfmt --install arm64 
   docker run --rm --privileged tonistiigi/binfmt
 fi
-
-# Ensure we use a builder that can leverage it (the default on linux will not)
-docker buildx rm ingress-nginx || true
-docker buildx create --use --name=ingress-nginx
