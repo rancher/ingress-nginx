@@ -177,7 +177,7 @@ dnf install -y \
   openssl \
   cmake \
   util-linux \
-  lmdb \
+  lmdb-libs \
   wget \
   curl-devel \
   protobuf-devel \
