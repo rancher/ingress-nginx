@@ -14,12 +14,8 @@
 
 
 # Use a multi-stage build
-FROM centos:8 as builder
+FROM rockylinux:8 as builder
 
-# CentOS 8 has reached end of life. So have to change mirrors. 
-# Ref - https://techglimpse.com/failed-metadata-repo-appstream-centos-8/
-RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 RUN yum -y update \
   && yum -y upgrade \
   && yum -y install epel-release 'dnf-command(config-manager)' \

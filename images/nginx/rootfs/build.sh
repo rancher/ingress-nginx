@@ -177,7 +177,6 @@ dnf install -y \
   openssl \
   cmake \
   util-linux \
-  lmdb \
   wget \
   curl-devel \
   protobuf-devel \
@@ -196,14 +195,16 @@ if [[ ${ARCH} == "s390x" ]]; then
     perl \
     libyajl-devel \
     libyaml-cpp0_6 \
-    libstdc++6-devel-gcc7
+    libstdc++6-devel-gcc7 \
+    lmdb
 else 
   dnf install -y \
     geoip-devel \
     perl-devel \
     yajl-devel \
     yaml-cpp \
-    libstdc++-static
+    libstdc++-static \
+    lmdb-libs
 fi
 
 mkdir -p /etc/nginx
