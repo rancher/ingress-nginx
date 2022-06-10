@@ -38,7 +38,7 @@ const SlowEchoService = "slow-echo"
 const HTTPBinService = "httpbin"
 
 // NginxBaseImage use for testing
-const NginxBaseImage = "k8s.gcr.io/ingress-nginx/nginx:81c2afd975a6f9a9847184472286044d7d5296f6@sha256:a71ac64dd8cfd68341ba47dbdc4d8c2cb91325fce669875193ea0319118201b5"
+const NginxBaseImage = "k8s.gcr.io/ingress-nginx/nginx:cd6f88af3f976a180ed966dadf273473ae768dfa@sha256:18f91105e4099941d2efee71a8ec52c6ef7702d5f7e8214b7cb5f25cc10a0b41"
 
 type deploymentOptions struct {
 	namespace string
@@ -150,8 +150,9 @@ http {
 	f.NGINXWithConfigDeployment(SlowEchoService, cfg)
 }
 
-// NGINXWithConfigDeployment creates an NGINX deployment using a configmap containing the nginx.conf configuration
-func (f *Framework) NGINXWithConfigDeployment(name string, cfg string) {
+// NGINXDeployment creates a new simple NGINX Deployment using NGINX base image
+// and passing the desired configuration
+func (f *Framework) NGINXDeployment(name string, cfg string, waitendpoint bool) {
 	cfgMap := map[string]string{
 		"nginx.conf": cfg,
 	}
@@ -213,8 +214,15 @@ func (f *Framework) NGINXWithConfigDeployment(name string, cfg string) {
 
 	f.EnsureService(service)
 
-	err = WaitForEndpoints(f.KubeClientSet, DefaultTimeout, name, f.Namespace, 1)
-	assert.Nil(ginkgo.GinkgoT(), err, "waiting for endpoints to become ready")
+	if waitendpoint {
+		err = WaitForEndpoints(f.KubeClientSet, DefaultTimeout, name, f.Namespace, 1)
+		assert.Nil(ginkgo.GinkgoT(), err, "waiting for endpoints to become ready")
+	}
+}
+
+// NGINXWithConfigDeployment creates an NGINX deployment using a configmap containing the nginx.conf configuration
+func (f *Framework) NGINXWithConfigDeployment(name string, cfg string) {
+	f.NGINXDeployment(name, cfg, true)
 }
 
 // NewGRPCBinDeployment creates a new deployment of the
