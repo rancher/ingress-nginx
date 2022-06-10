@@ -89,6 +89,7 @@ if [[ "$DOCKER_IN_DOCKER_ENABLED" == "true" ]]; then
   #go env
   go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.9.5
   find / -type f -name ginkgo 2>/dev/null
+  PATH=$PATH:$GOPATH/bin/linux_arm64
   which ginkgo
   /bin/bash -c "${FLAGS}"
 else
