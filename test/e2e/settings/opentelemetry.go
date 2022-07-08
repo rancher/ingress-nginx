@@ -37,6 +37,7 @@ const (
 )
 
 var _ = framework.IngressNginxDescribe("Configure Opentelemetry", func() {
+	ginkgo.Skip("flaky")
 	f := framework.NewDefaultFramework("enable-opentelemetry")
 
 	ginkgo.BeforeEach(func() {
