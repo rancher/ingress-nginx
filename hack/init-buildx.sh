@@ -51,7 +51,3 @@ if ! grep -q "^Driver: docker$"  <<<"${current_builder}" && \
   exit 0
 fi
 
-
-# Ensure we use a builder that can leverage it (the default on linux will not)
-docker buildx rm ingress-nginx || true
-docker buildx create --use --name=ingress-nginx
