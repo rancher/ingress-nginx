@@ -9,4 +9,4 @@ if ! command -v kind &> /dev/null; then
   ./scripts/e2e-test-install-deps
 fi
 
-SKIP_IMAGE_CREATION=false make kind-e2e-test
+SKIP_IMAGE_CREATION=false SKIP_E2E_IMAGE_CREATION=true make kind-e2e-test
