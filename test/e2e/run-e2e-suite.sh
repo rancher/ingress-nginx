@@ -108,13 +108,10 @@ cd $reportsDir
 # We only have 3 ginkgo reports so its ok for now
 # But still, ideally this should be a loop as talked about in comments a few lines above
 kubectl get cm $reportFileName.xml.gz -o "jsonpath={.binaryData['report-e2e-test-suite\.xml\.gz']}" > $reportFileName.xml.gz.base64
-kubectl get cm $reportFileName-serial.xml.gz -o "jsonpath={.binaryData['report-e2e-test-suite-serial\.xml\.gz']}" > $reportFileName-serial.xml.gz.base64
 
 cat $reportFileName.xml.gz.base64 | base64 -d > $reportFileName.xml.gz
-cat $reportFileName-serial.xml.gz.base64 | base64 -d > $reportFileName-serial.xml.gz
 
 gzip -d $reportFileName.xml.gz
-gzip -d $reportFileName-serial.xml.gz
 
 rm *.base64
 cd ../..
