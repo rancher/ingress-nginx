@@ -70,7 +70,7 @@ fullnameOverride: nginx-ingress
 controller:
   image:
     repository: ingress-controller/controller
-    chroot: ${IS_CHROOT}
+    chroot: true
     tag: 1.0.0-dev
     digest:
     digestChroot:
