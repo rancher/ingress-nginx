@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -x
+set -ex
 writeDirs=( \
   /chroot/etc/nginx \
   /chroot/usr/local/ \
@@ -42,9 +42,18 @@ for dir in "${writeDirs[@]}"; do
   chown -R www-data.www-data ${dir};
 done
 
-mkdir -p  /chroot/lib /chroot/proc /chroot/usr /chroot/bin /chroot/dev /chroot/run 
+mkdir -p  /chroot/lib /chroot/lib64 /chroot/proc /chroot/usr /chroot/bin /chroot/dev /chroot/run 
 cp /etc/passwd /etc/group /etc/hosts /chroot/etc/
 cp -a /usr/* /chroot/usr/
 cp -a /etc/nginx/* /chroot/etc/nginx/
-cp -a /etc/ingress-controller/* /chroot/etc/ingress-controller/
-cp /lib/ld-musl-* /lib/libcrypto* /lib/libssl* /lib/libz* /chroot/lib/
+cp -a /etc/ingress-controller/* /chroot/etc/ingress-controller/ || true
+
+# no need to copy each library since 
+cp /lib64/libcrypto* /lib64/libssl* /lib64/libz* /chroot/lib64/ || true
+mknod -m 0666 /chroot/dev/null c 1 3
+mknod -m 0666 /chroot/dev/random c 1 8
+mknod -m 0666 /chroot/dev/urandom c 1 9
+mknod -m 0666 /chroot/dev/full c 1 7
+mknod -m 0666 /chroot/dev/ptmx c 5 2
+mknod -m 0666 /chroot/dev/zero c 1 5
+mknod -m 0666 /chroot/dev/tty c 5 0
