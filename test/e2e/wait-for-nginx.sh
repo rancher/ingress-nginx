@@ -47,16 +47,6 @@ metadata:
 
 EOF
 
-OTEL_MODULE=$(cat <<EOF
-  opentelemetry:
-    enabled: true
-EOF
-)
-
-if [[ "$NAMESPACE_OVERLAY" != "enable-opentelemetry" ]]; then
-  OTEL_MODULE=""
-fi
-
 # Use the namespace overlay if it was requested
 if [[ ! -z "$NAMESPACE_OVERLAY" && -d "$DIR/namespace-overlays/$NAMESPACE_OVERLAY" ]]; then
     echo "Namespace overlay $NAMESPACE_OVERLAY is being used for namespace $NAMESPACE"
@@ -70,12 +60,12 @@ fullnameOverride: nginx-ingress
 controller:
   image:
     repository: ingress-controller/controller
-    chroot: ${IS_CHROOT}
+    chroot: true
     tag: 1.0.0-dev
     digest:
     digestChroot:
   scope:
-    enabled: true
+    enabled: ${IS_CHROOT}
   config:
     worker-processes: "1"
   readinessProbe:
@@ -111,7 +101,6 @@ controller:
       hostPath:
         path: /tmp/coredump
 
-${OTEL_MODULE}
 
 rbac:
   create: true
