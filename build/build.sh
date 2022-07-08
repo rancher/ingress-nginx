@@ -43,30 +43,20 @@ if [ "$missing" = true ]; then
   exit 1
 fi
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export GOARCH=${ARCH}
 
-TARGETS_DIR="rootfs/bin/${ARCH}"
-echo "Building targets for ${ARCH}, generated targets in ${TARGETS_DIR} directory."
-
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
+export GO_LDFLAGS="-linkmode=external -buildid= \
     -X ${PKG}/version.RELEASE=${TAG} \
     -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "${TARGETS_DIR}/nginx-ingress-controller" "${PKG}/cmd/nginx"
+    -X ${PKG}/version.REPO=${REPO_INFO}"
 
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
-    -X ${PKG}/version.RELEASE=${TAG} \
-    -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "${TARGETS_DIR}/dbg" "${PKG}/cmd/dbg"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/nginx-ingress-controller" "${PKG}/cmd/nginx"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/dbg" "${PKG}/cmd/dbg"
+go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/wait-shutdown" "${PKG}/cmd/waitshutdown"
 
-go build \
-  -trimpath -ldflags="-buildid= -w -s \
-    -X ${PKG}/version.RELEASE=${TAG} \
-    -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-    -X ${PKG}/version.REPO=${REPO_INFO}" \
-  -o "${TARGETS_DIR}/wait-shutdown" "${PKG}/cmd/waitshutdown"
-
+go-assert-static.sh rootfs/bin/${ARCH}/*
+if [[ ${ARCH} != "s390x" ]]; then
+  go-assert-boring.sh rootfs/bin/${ARCH}/*
+fi
+strip rootfs/bin/${ARCH}/*

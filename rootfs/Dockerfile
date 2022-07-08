@@ -35,12 +35,6 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/modules_mount/etc/nginx/modules/modules
 
 WORKDIR  /etc/nginx
 
-RUN apk update \
-  && apk upgrade \
-  && apk add --no-cache \
-    diffutils \
-  && rm -rf /var/cache/apk/*
-
 COPY --chown=www-data:www-data etc /etc
 
 COPY --chown=www-data:www-data bin/${TARGETARCH}/dbg /
@@ -59,20 +53,18 @@ RUN bash -xeu -c ' \
     /tmp/nginx \
   ); \
   for dir in "${writeDirs[@]}"; do \
-    mkdir -p ${dir}; \
-    chown -R www-data.www-data ${dir}; \
+  mkdir -p ${dir}; \
+  chown -R www-data.www-data ${dir}; \
   done'
 
-RUN apk add --no-cache libcap \
-  && setcap    cap_net_bind_service=+ep /nginx-ingress-controller \
+RUN  setcap    cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap -v cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap    cap_net_bind_service=+ep /usr/local/nginx/sbin/nginx \
   && setcap -v cap_net_bind_service=+ep /usr/local/nginx/sbin/nginx \
   && setcap    cap_net_bind_service=+ep /usr/bin/dumb-init \
   && setcap -v cap_net_bind_service=+ep /usr/bin/dumb-init \
-  && apk del libcap \
   && ln -sf /usr/local/nginx/sbin/nginx /usr/bin/nginx
-
+  
 USER www-data
 
 # Create symlinks to redirect nginx logs to stdout and stderr docker log collector
