@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -o xtrace
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -130,6 +131,8 @@ export LUA_RESTY_GLOBAL_THROTTLE_VERSION=0.2.0
 # Check for recent changes:  https://github.com/microsoft/mimalloc/compare/v1.7.6...master
 export MIMALOC_VERSION=1.7.6
 
+export LIBMAXMINDDB_VERSION=1.5.2
+
 export BUILD_PATH=/tmp/build
 
 ARCH=$(uname -m)
@@ -155,44 +158,57 @@ get_src()
   rm -rf "$f"
 }
 
-# install required packages to build
-apk add \
+# install required common arch packages to build
+dnf install -y \
   bash \
   gcc \
   clang \
-  libc-dev \
   make \
   automake \
-  openssl-dev \
-  pcre-dev \
-  zlib-dev \
-  linux-headers \
-  libxslt-dev \
-  gd-dev \
-  geoip-dev \
-  perl-dev \
-  libedit-dev \
+  openssl-devel \
+  pcre-devel \
+  zlib-devel \
+  kernel-headers \
+  libxslt-devel \
+  gd-devel \
+  libedit-devel \
   mercurial \
-  alpine-sdk \
   findutils \
   curl ca-certificates \
   patch \
-  libaio-dev \
+  libaio-devel \
   openssl \
   cmake \
   util-linux \
-  lmdb-tools \
   wget \
-  curl-dev \
-  libprotobuf \
-  git g++ pkgconf flex bison doxygen yajl-dev lmdb-dev libtool autoconf libxml2 libxml2-dev \
+  curl-devel \
+  protobuf-devel \
+  git gcc-c++ pkgconf flex bison doxygen lmdb-devel libtool autoconf libxml2 libxml2-devel \
   python3 \
-  libmaxminddb-dev \
   bc \
   unzip \
   dos2unix \
-  yaml-cpp \
-  coreutils
+  lua-devel \
+  gzip \
+  tar
+
+if [[ ${ARCH} == "s390x" ]]; then
+  dnf install -y \
+    libGeoIP-devel \
+    perl \
+    libyajl-devel \
+    libyaml-cpp0_6 \
+    libstdc++6-devel-gcc7 \
+    lmdb
+else 
+  dnf install -y \
+    geoip-devel \
+    perl-devel \
+    yajl-devel \
+    yaml-cpp \
+    libstdc++-static \
+    lmdb-libs
+fi
 
 mkdir -p /etc/nginx
 
@@ -226,6 +242,10 @@ get_src cbe625cba85291712253db5bc3870d60c709acfad9a8af5a302673d3d201e3ea \
 
 get_src 71de3d0658935db7ccea20e006b35e58ddc7e4c18878b9523f2addc2371e9270 \
         "https://github.com/rnburn/zipkin-cpp-opentracing/archive/$ZIPKIN_CPP_VERSION.tar.gz"
+
+# build libmaxminddb to get the latest version in centos:8
+get_src 5237076d250a5f7c297e331c35a433eeaaf0dc205e070e4db353c9ba10f340a2 \
+        "https://github.com/maxmind/libmaxminddb/releases/download/$LIBMAXMINDDB_VERSION/libmaxminddb-$LIBMAXMINDDB_VERSION.tar.gz"
 
 get_src f8d3ff15520df736c5e20e91d5852ec27e0874566c2afce7dcb979e2298d6980 \
         "https://github.com/SpiderLabs/ModSecurity-nginx/archive/v$MODSECURITY_VERSION.tar.gz"
@@ -327,8 +347,9 @@ get_src d74f86ada2329016068bc5a243268f1f555edd620b6a7d6ce89295e7d6cf18da \
         "https://github.com/microsoft/mimalloc/archive/refs/tags/v${MIMALOC_VERSION}.tar.gz"
 
 # improve compilation times
-CORES=$(($(grep -c ^processor /proc/cpuinfo) - 1))
+CORES=$(grep -c ^processor /proc/cpuinfo)
 
+export VERBOSE=1
 export MAKEFLAGS=-j${CORES}
 export CTEST_BUILD_FLAGS=${MAKEFLAGS}
 export HUNTER_JOBS_NUMBER=${CORES}
@@ -366,6 +387,8 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 
 make
 make install
+# symlink opentracing library to lib64 to work under ubi-minimal image
+ln -s /usr/local/lib64/libdd_opentracing.so /usr/local/lib/libdd_opentracing.so
 
 # build yaml-cpp
 # TODO @timmysilv: remove this and jaeger sed calls once it is fixed in jaeger-client-cpp
@@ -490,6 +513,14 @@ cd ssdeep/
 
 make
 make install
+
+
+cd "$BUILD_PATH/libmaxminddb-$LIBMAXMINDDB_VERSION"
+./configure
+make
+make check
+make install
+ldconfig
 
 # build modsecurity library
 cd "$BUILD_PATH"
@@ -739,7 +770,12 @@ writeDirs=( \
   /var/log/nginx \
 );
 
-adduser -S -D -H -u 101 -h /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+groupadd -rg 101 www-data
+if [[ ${ARCH} == "s390x" ]]; then
+  useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+else
+  adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+fi
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};
