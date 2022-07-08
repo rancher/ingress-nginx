@@ -62,3 +62,7 @@ cmd/plugin/release/LICENSE
 tmp/
 test/junitreports/
 tests/__snapshot__
+
+# rancher ci
+.dapper
+/dist/
