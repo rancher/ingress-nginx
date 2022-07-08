@@ -29,14 +29,41 @@ ginkgo_args=(
   "--junit-report=${reportFile}"
   "--nodes=${E2E_NODES}"
   "--poll-progress-after=180s"
-  "--randomize-all"
-  "--show-node-events"
-  "--succinct"
-  "--timeout=75m"
+#  "-slow-spec-threshold=${SLOW_E2E_THRESHOLD}"
+  "-succinct"
+  "-timeout=90m" # Suite timeout should be lower than Prow job timeout to avoid abrupt termination
 )
 
-if [ -n "${FOCUS}" ]; then
-  ginkgo_args+=("--focus=${FOCUS}")
+# Variable for the prefix of report filenames
+reportFileNamePrefix="report-e2e-test-suite"
+
+echo -e "${BGREEN}Running e2e test suite (FOCUS=${FOCUS})...${NC}"
+ginkgo "${ginkgo_args[@]}"               \
+  -focus="${FOCUS}"                  \
+  -skip="\[Serial\]|\[MemoryLeak\]|\[TopologyHints\]"  \
+  -nodes="${E2E_NODES}" \
+  --junit-report=$reportFileNamePrefix.xml \
+  /e2e.test
+# Create configMap out of a compressed report file for extraction later
+
+# Must be isolated, there is a collision if multiple helms tries to install same clusterRole at same time
+echo -e "${BGREEN}Running e2e test for topology aware hints...${NC}"
+ginkgo "${ginkgo_args[@]}" \
+  -focus="\[TopologyHints\]" \
+  -skip="\[Serial\]|\[MemoryLeak\]]" \
+  -nodes="${E2E_NODES}" \
+  --junit-report=$reportFileNamePrefix-topology.xml \
+  /e2e.test
+# Create configMap out of a compressed report file for extraction later
+
+if [[ ${E2E_CHECK_LEAKS} != "" ]]; then
+  echo -e "${BGREEN}Running e2e test suite with tests that check for memory leaks...${NC}"
+  ginkgo "${ginkgo_args[@]}"    \
+    -focus="\[MemoryLeak\]" \
+    -skip="\[Serial\]" \
+    --junit-report=$reportFileNamePrefix-memleak.xml \
+    /e2e.test
+# Create configMap out of a compressed report file for extraction later
 fi
 
 if [ -z "${E2E_CHECK_LEAKS}" ]; then
