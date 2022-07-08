@@ -123,7 +123,7 @@ var _ = framework.DescribeAnnotation("proxy-ssl-*", func() {
 		host := "proxyssl.foo.com"
 		annotations := make(map[string]string)
 		annotations["nginx.ingress.kubernetes.io/proxy-ssl-secret"] = f.Namespace + "/" + host
-		annotations["nginx.ingress.kubernetes.io/proxy-ssl-protocols"] = "TLSv1.2 TLSv1.3"
+		annotations["nginx.ingress.kubernetes.io/proxy-ssl-protocols"] = "TLSv1.2"
 
 		tlsConfig, err := framework.CreateIngressMASecret(f.KubeClientSet, host, host, f.Namespace)
 		assert.Nil(ginkgo.GinkgoT(), err)
@@ -131,7 +131,7 @@ var _ = framework.DescribeAnnotation("proxy-ssl-*", func() {
 		ing := framework.NewSingleIngressWithTLS(host, "/", host, []string{host}, f.Namespace, framework.EchoService, 80, annotations)
 		f.EnsureIngress(ing)
 
-		assertProxySSL(f, host, "", "DEFAULT", "TLSv1.2 TLSv1.3", "off", 1, "")
+		assertProxySSL(f, host, "", "DEFAULT", "TLSv1.2", "off", 1, "")
 
 		f.HTTPTestClient().
 			GET("/").
