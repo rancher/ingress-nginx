@@ -35,7 +35,7 @@ var _ = framework.DescribeAnnotation("Annotation - limit-connections", func() {
 		f.NewSlowEchoDeployment()
 	})
 
-	ginkgo.It("should limit-connections", func() {
+	ginkgo.It("should limit-connections", ginkgo.Label("flaky"), func() {
 		host := "limit-connections"
 
 		ing := framework.NewSingleIngress(host, "/", host, f.Namespace, framework.SlowEchoService, 80, nil)

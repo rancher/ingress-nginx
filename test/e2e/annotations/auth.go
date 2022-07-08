@@ -19,12 +19,13 @@ package annotations
 import (
 	"context"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"

@@ -152,7 +152,7 @@ var _ = framework.DescribeSetting("use-proxy-protocol", func() {
 		assert.Contains(ginkgo.GinkgoT(), body, fmt.Sprintf("x-forwarded-for=192.168.0.1"))
 	})
 
-	ginkgo.It("should enable PROXY Protocol for TCP", func() {
+	ginkgo.It("should enable PROXY Protocol for TCP", ginkgo.Label("flaky"), func() {
 		cmapData := map[string]string{}
 		cmapData[setting] = "true"
 		cmapData["enable-real-ip"] = "true"
