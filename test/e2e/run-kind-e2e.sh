@@ -17,6 +17,9 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -o xtrace
+
+export VERBOSE=1
 
 cleanup() {
   if [[ "${KUBETEST_IN_DOCKER:-}" == "true" ]]; then
@@ -39,7 +42,7 @@ fi
 
 KIND_LOG_LEVEL="1"
 IS_CHROOT="${IS_CHROOT:-false}"
-export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-ingress-nginx-dev}
+export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-ingress-nginx-dev-${RANDOM}}
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Use 1.0.0-dev to make sure we use the latest configuration in the helm template
 export TAG=1.0.0-dev
