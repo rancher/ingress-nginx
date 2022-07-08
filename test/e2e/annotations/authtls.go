@@ -32,6 +32,7 @@ var _ = framework.DescribeAnnotation("auth-tls-*", func() {
 	f := framework.NewDefaultFramework("authtls")
 
 	ginkgo.BeforeEach(func() {
+		ginkgo.Skip("flaky")
 		f.NewEchoDeployment(framework.WithDeploymentReplicas(2))
 	})
 
