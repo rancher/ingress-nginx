@@ -722,7 +722,8 @@ cd "$BUILD_PATH/mimalloc-$MIMALOC_VERSION"
 mkdir -p out/release
 cd out/release
 
-cmake ../..
+# force mimalloc to install to /usr/local/lib on x86_64
+cmake -DCMAKE_INSTALL_LIBDIR=lib ../..
 
 make
 make install
