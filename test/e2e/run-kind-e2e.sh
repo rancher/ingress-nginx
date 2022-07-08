@@ -17,6 +17,9 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -o xtrace
+
+export VERBOSE=1
 
 cleanup() {
   if [[ "${KUBETEST_IN_DOCKER:-}" == "true" ]]; then
@@ -30,28 +33,7 @@ cleanup() {
 
 DEBUG=${DEBUG:=false}
 
-if [ "${DEBUG}" = "true" ]; then
-  set -x
-  KIND_LOG_LEVEL="6"
-else
-  trap cleanup EXIT
-fi
-
-KIND_LOG_LEVEL="1"
-IS_CHROOT="${IS_CHROOT:-false}"
-export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-ingress-nginx-dev}
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Use 1.0.0-dev to make sure we use the latest configuration in the helm template
-export TAG=1.0.0-dev
-export ARCH=${ARCH:-amd64}
-export REGISTRY=ingress-controller
-NGINX_BASE_IMAGE=$(cat "$DIR"/../../NGINX_BASE)
-export NGINX_BASE_IMAGE=$NGINX_BASE_IMAGE
-export DOCKER_CLI_EXPERIMENTAL=enabled
-export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/kind-config-$KIND_CLUSTER_NAME}"
-SKIP_INGRESS_IMAGE_CREATION="${SKIP_INGRESS_IMAGE_CREATION:-false}"
-SKIP_E2E_IMAGE_CREATION="${SKIP_E2E_IMAGE_CREATION:=false}"
-SKIP_CLUSTER_CREATION="${SKIP_CLUSTER_CREATION:-false}"
+export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-ingress-nginx-dev-${RANDOM}}
 
 if ! command -v kind --version &> /dev/null; then
   echo "kind is not installed. Use the package manager or visit the official site https://kind.sigs.k8s.io/"
