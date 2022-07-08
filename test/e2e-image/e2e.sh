@@ -32,7 +32,7 @@ ginkgo_args=(
   "--poll-progress-after=180s"
 #  "-slow-spec-threshold=${SLOW_E2E_THRESHOLD}"
   "-succinct"
-  "-timeout=75m"
+  "-timeout=90m" # Suite timeout should be lower than Prow job timeout to avoid abrupt termination
 )
 
 # Variable for the prefix of report filenames
@@ -54,14 +54,6 @@ ginkgo "${ginkgo_args[@]}" \
   -skip="\[Serial\]|\[MemoryLeak\]]" \
   -nodes="${E2E_NODES}" \
   --junit-report=$reportFileNamePrefix-topology.xml \
-  /e2e.test
-# Create configMap out of a compressed report file for extraction later
-
-echo -e "${BGREEN}Running e2e test suite with tests that require serial execution...${NC}"
-ginkgo "${ginkgo_args[@]}"   \
-  -focus="\[Serial\]"    \
-  -skip="\[MemoryLeak\]" \
-  --junit-report=$reportFileNamePrefix-serial.xml \
   /e2e.test
 # Create configMap out of a compressed report file for extraction later
 
