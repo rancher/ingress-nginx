@@ -40,6 +40,7 @@ var _ = framework.IngressNginxDescribe("Configure Opentelemetry", func() {
 	f := framework.NewDefaultFramework("enable-opentelemetry")
 
 	ginkgo.BeforeEach(func() {
+		ginkgo.Skip("flaky")
 		f.NewEchoDeployment()
 	})
 
