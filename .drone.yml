@@ -1,0 +1,277 @@
+---
+kind: pipeline
+name: ci
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: ci
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper ci
+  environment:
+    DOCKER_PASS:
+      from_secret: docker_password
+    DOCKER_USER:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: e2e-test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper e2e-test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: validate
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper validate
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: build
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+- name: package
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper package
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+
+kind: pipeline
+name: ci-s390x
+
+platform:
+  os: linux
+  arch: amd64
+
+node:
+  arch: s390x
+
+steps:
+- name: ci
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper ci
+  environment:
+    DOCKER_PASS:
+      from_secret: docker_password
+    DOCKER_USER:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: validate
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper validate
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+- name: build
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+- name: test
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+- name: package
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper package
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: manifest-nginx
+
+steps:
+  - name: push-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      platforms:
+        - linux/amd64
+        - linux/s390x
+      target: "rancher/nginx:ingress-${DRONE_TAG}"
+      template: "rancher/nginx:ingress-${DRONE_TAG}-ARCH"
+    when:
+      event:
+        - tag
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+trigger:
+  event:
+    - tag
+
+depends_on:
+  - ci
+  - ci-s390x
+
+---
+kind: pipeline
+name: manifest-nginx-controller
+
+steps:
+  - name: push-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      platforms:
+        - linux/amd64
+        - linux/s390x
+      target: "rancher/nginx-ingress-controller:${DRONE_TAG}"
+      template: "rancher/nginx-ingress-controller:${DRONE_TAG}-ARCH"
+    when:
+      event:
+        - tag
+  - name: push-manifest-chroot
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      platforms:
+        - linux/amd64
+        - linux/s390x
+      target: "rancher/nginx-ingress-controller-chroot:${DRONE_TAG}"
+      template: "rancher/nginx-ingress-controller-chroot:${DRONE_TAG}-ARCH"
+    when:
+      event:
+        - tag
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+trigger:
+  event:
+    - tag
+
+depends_on:
+  - ci
+  - ci-s390x
