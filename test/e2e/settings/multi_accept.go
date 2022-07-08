@@ -37,6 +37,7 @@ var _ = framework.DescribeSetting("enable-multi-accept", func() {
 	})
 
 	ginkgo.It("should be enabled when set to true", func() {
+		ginkgo.Skip("flaky")
 		expectedDirective := "multi_accept on;"
 		f.UpdateNginxConfigMapData(multiAccept, "true")
 
@@ -47,6 +48,7 @@ var _ = framework.DescribeSetting("enable-multi-accept", func() {
 	})
 
 	ginkgo.It("should be disabled when set to false", func() {
+		ginkgo.Skip("flaky")
 		expectedDirective := "multi_accept off;"
 		f.UpdateNginxConfigMapData(multiAccept, "false")
 
