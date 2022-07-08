@@ -32,7 +32,7 @@ ginkgo_args=(
   "--poll-progress-after=180s"
 #  "-slow-spec-threshold=${SLOW_E2E_THRESHOLD}"
   "-succinct"
-  "-timeout=75m"
+  "-timeout=90m" # Suite timeout should be lower than Prow job timeout to avoid abrupt termination
 )
 
 # Variable for the prefix of report filenames
