@@ -29,6 +29,7 @@ var _ = framework.DescribeAnnotation("denylist-source-range", func() {
 	f := framework.NewDefaultFramework("ipdenylist")
 
 	ginkgo.BeforeEach(func() {
+		ginkgo.Skip("flaky")
 		f.NewEchoDeployment()
 	})
 
