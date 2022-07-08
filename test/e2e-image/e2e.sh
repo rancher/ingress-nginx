@@ -31,7 +31,7 @@ ginkgo_args=(
   "-progress"
   "-slow-spec-threshold=${SLOW_E2E_THRESHOLD}"
   "-succinct"
-  "-timeout=75m"
+  "-timeout=90m" # Suite timeout should be lower than Prow job timeout to avoid abrupt termination
 )
 
 echo -e "${BGREEN}Running e2e test suite (FOCUS=${FOCUS})...${NC}"
