@@ -55,7 +55,7 @@ endif
 
 REGISTRY ?= gcr.io/k8s-staging-ingress-nginx
 
-BASE_IMAGE ?= $(shell cat NGINX_BASE)
+BASE_IMAGE ?= rancher/nginx:ingress-v1.7.1-hardened1
 
 GOARCH=$(ARCH)
 
@@ -234,42 +234,38 @@ show-version:
 	echo -n $(TAG)
 
 PLATFORMS ?= amd64 arm arm64 s390x
-BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64,linux/s390x
 
-.PHONY: release # Build a multi-arch docker image
-release: ensure-buildx clean
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+COMMA := ,
+OUTPUT=
+
+release-ingress-controller: OUTPUT=--push
+release-ingress-controller: build-ingress-controller
+
+build-ingress-controller: ensure-buildx clean
 	echo "Building binaries..."
 	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
-	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
-
-	docker buildx build \
+	echo "Building and pushing ingress-nginx image..."
+	docker build \
 		--no-cache \
-		$(MAC_DOCKER_FLAGS) \
-		--push \
-		--pull \
 		--progress plain \
-		--platform $(BUILDX_PLATFORMS) \
+		--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg TARGETARCH="$(ARCH)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller:$(TAG) rootfs
+		-t $(REGISTRY)/nginx-ingress-controller:$(TAG)-$(PLATFORMS) rootfs
 
-	docker buildx build \
-		--no-cache \
-		$(MAC_DOCKER_FLAGS) \
-		--push \
-		--pull \
-		--progress plain \
-		--platform $(BUILDX_PLATFORMS)  \
-		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
-		--build-arg VERSION="$(TAG)" \
-		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
-		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
-
-.PHONY: build-docs
-build-docs:
-	pip install -r docs/requirements.txt
-	mkdocs build --config-file mkdocs.yml
+	docker build \
+			--no-cache \
+			--progress plain \
+			--platform $(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
+			--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+			--build-arg VERSION="$(TAG)" \
+			--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+			--build-arg TARGETARCH="$(ARCH)" \
+			--build-arg BUILD_ID="$(BUILD_ID)" \
+			-t $(REGISTRY)/nginx-ingress-controller-chroot:$(TAG)-$(PLATFORMS) rootfs -f rootfs/Dockerfile-chroot
