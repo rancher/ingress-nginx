@@ -63,7 +63,7 @@ docker tag "${REGISTRY}/controller:${TAG}" "${DEV_IMAGE}"
 
 export K8S_VERSION=${K8S_VERSION:-v1.21.12@sha256:f316b33dd88f8196379f38feb80545ef3ed44d9197dca1bfd48bcb1583210207}
 
-KIND_CLUSTER_NAME="ingress-nginx-dev"
+KIND_CLUSTER_NAME="ingress-nginx-dev-${RANDOM}"
 
 if ! kind get clusters -q | grep -q ${KIND_CLUSTER_NAME}; then
 echo "[dev-env] creating Kubernetes cluster with kind"
