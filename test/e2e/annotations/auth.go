@@ -234,8 +234,10 @@ var _ = framework.DescribeAnnotation("auth-*", func() {
 					Namespace: f.Namespace,
 				},
 				Data: map[string][]byte{
-					// invalid content
-					"auth": []byte("foo:"),
+					// invalid content (produces 500 error on systems w/o DES)
+					// "auth": []byte("foo:"),
+					// invalid sha512 hash
+					"auth": []byte("foo:$6$"),
 				},
 				Type: corev1.SecretTypeOpaque,
 			},
