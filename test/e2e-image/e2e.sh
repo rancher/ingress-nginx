@@ -32,7 +32,8 @@ ginkgo_args=(
   "--randomize-all"
   "--show-node-events"
   "--succinct"
-  "--timeout=75m"
+  "--timeout=90m" # Suite timeout should be lower than Prow job timeout to avoid abrupt termination
+  "--label-filter='!Serial'" # Skip Serial tagged tests, keeps e2e under 1 hour drone timeout
 )
 
 if [ -n "${FOCUS}" ]; then
@@ -42,6 +43,7 @@ fi
 if [ -z "${E2E_CHECK_LEAKS}" ]; then
   ginkgo_args+=("--skip=\[Memory Leak\]")
 fi
+
 
 echo -e "${BGREEN}Running e2e test suite...${NC}"
 (set -x; ginkgo "${ginkgo_args[@]}" /e2e.test)
