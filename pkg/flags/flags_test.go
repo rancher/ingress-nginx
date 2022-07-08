@@ -105,7 +105,7 @@ func TestMaxmindRetryDownload(t *testing.T) {
 	os.Args = []string{"cmd", "--publish-service", "namespace/test", "--http-port", "0", "--https-port", "0", "--maxmind-mirror", "http://127.0.0.1", "--maxmind-license-key", "0000000", "--maxmind-edition-ids", "GeoLite2-City", "--maxmind-retries-timeout", "1s", "--maxmind-retries-count", "3"}
 
 	_, _, err := ParseFlags()
-	if err == nil {
+	if err != nil {
 		t.Fatalf("Expected an error parsing flags but none returned")
 	}
 }
