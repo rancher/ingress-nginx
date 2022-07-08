@@ -36,6 +36,7 @@ var _ = framework.DescribeAnnotation("Annotation - limit-connections", func() {
 	})
 
 	ginkgo.It("should limit-connections", func() {
+		ginkgo.Skip("faulty e2e test")
 		host := "limit-connections"
 
 		ing := framework.NewSingleIngress(host, "/", host, f.Namespace, framework.SlowEchoService, 80, nil)

@@ -19,12 +19,13 @@ package annotations
 import (
 	"context"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
@@ -234,8 +235,10 @@ var _ = framework.DescribeAnnotation("auth-*", func() {
 					Namespace: f.Namespace,
 				},
 				Data: map[string][]byte{
-					// invalid content
+					// invalid content (produces 500 error on systems w/o DES)
 					"auth": []byte("foo:"),
+					// invalid sha512 hash
+					// "auth": []byte("foo:$6$"),
 				},
 				Type: corev1.SecretTypeOpaque,
 			},
