@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e -x
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+
+# If #GIT_TAG is present, then we release and push to registry
+if [[ -n "$GIT_TAG" ]] && [[ -z "$LOCAL" ]]; then
+    # manifest push happens as part of make release, so login is required inside the dapper container
+    echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+    EXIT_CODE=0
+    # Sometimes the push fails with a 500 error, but the image is actually pushed
+    # So we ignore the error 
+    TAG=${NGINX_TAG} make -C images/nginx push || EXIT_CODE=$?
+    echo "Pushing nginx image exited with code $EXIT_CODE"
+    make release-ingress-controller || EXIT_CODE=$?
+    echo "Pushing ingress controller image exited with code $EXIT_CODE"
+else
+    TAG=${NGINX_TAG} make -C images/nginx build
+    make build-ingress-controller
+fi
