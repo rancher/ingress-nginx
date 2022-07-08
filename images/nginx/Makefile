@@ -32,15 +32,21 @@ IMAGE = $(REGISTRY)/nginx
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
 # build with buildx
-PLATFORMS?=linux/amd64,linux/arm,linux/arm64,linux/s390x
+PLATFORMS ?= amd64 arm arm64 s390x
+
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+COMMA := ,
+
 OUTPUT=
 PROGRESS=plain
 build: ensure-buildx
 	docker buildx build \
-		--platform=${PLATFORMS} $(OUTPUT) \
+		-f rootfs/Dockerfile.$(PLATFORMS) \
+		--platform=$(subst $(SPACE),$(COMMA),$(PLATFORMS)) $(OUTPUT) \
 		--progress=$(PROGRESS) \
 		--pull \
-		--tag $(IMAGE):$(TAG) rootfs
+		--tag $(IMAGE):$(TAG)-$(PLATFORMS) rootfs
 
 # push the cross built image
 push: OUTPUT=--push
