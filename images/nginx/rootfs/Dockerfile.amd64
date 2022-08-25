@@ -54,6 +54,7 @@ RUN zypper addrepo \
     -p 105 http://download.opensuse.org/tumbleweed/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
 RUN zypper install -y \
+        libcap-progs \
         libmaxminddb0 \
         liblmdb-0_9_17 \
         crypto-policies-scripts \

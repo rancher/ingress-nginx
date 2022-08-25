@@ -49,12 +49,7 @@ RUN if [ "$TARGETARCH" = "s390x" ] ; then dnf install -y \
      ca-certificates \
      diffutils \
      timezone \
-     util-linux ; else microdnf install bash \
-     curl \
-     openssl \
-     ca-certificates \
-     tzdata \
-     diffutils; fi
+     util-linux ; fi
 
 COPY --chown=www-data:www-data etc /chroot/etc
 
