@@ -57,6 +57,7 @@ RUN zypper install -y \
         libcap-progs \
         libmaxminddb0 \
         liblmdb-0_9_17 \
+        libGeoIP1 \
         crypto-policies-scripts \
         wget \
         which \
