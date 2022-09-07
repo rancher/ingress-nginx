@@ -30,13 +30,6 @@ COPY build.sh /
 
 RUN /build.sh
 
-# Pull static components from alpine
-FROM alpine:3.13 as extras
-
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache dumb-init
-
 # With BCI as base image
 FROM registry.suse.com/bci/bci-base:latest
 
@@ -48,7 +41,6 @@ ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
-COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
 RUN zypper addrepo \
     -p 105 http://download.opensuse.org/tumbleweed/repo/oss/ download.opensuse.org-oss && \
@@ -61,10 +53,12 @@ RUN zypper install -y \
         crypto-policies-scripts \
         wget \
         which \
+        git \
         libyajl2 \
         make \
         tar \
-        gzip
+        gzip \
+        catatonit
 
 RUN ldDirs=" \
       /usr/local/lib \
