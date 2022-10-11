@@ -59,8 +59,8 @@ RUN  setcap    cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap -v cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap    cap_net_bind_service=+ep /usr/local/nginx/sbin/nginx \
   && setcap -v cap_net_bind_service=+ep /usr/local/nginx/sbin/nginx \
-  && setcap    cap_net_bind_service=+ep /usr/bin/dumb-init \
-  && setcap -v cap_net_bind_service=+ep /usr/bin/dumb-init \
+  && setcap    cap_net_bind_service=+ep /usr/bin/catatonit \
+  && setcap -v cap_net_bind_service=+ep /usr/bin/catatonit \
   && ln -sf /usr/local/nginx/sbin/nginx /usr/bin/nginx
   
 USER www-data
@@ -69,6 +69,6 @@ USER www-data
 RUN  ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/catatonit", "--"]
 
 CMD ["/nginx-ingress-controller"]
