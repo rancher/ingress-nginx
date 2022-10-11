@@ -48,12 +48,7 @@ RUN if [ "$TARGETARCH" = "s390x" ] ; then dnf install -y \
      ca-certificates \
      diffutils \
      timezone \
-     util-linux ; else microdnf install bash \
-     curl \
-     openssl \
-     ca-certificates \
-     tzdata \
-     diffutils; fi
+     util-linux ; fi
 
 COPY --chown=www-data:www-data etc /chroot/etc
 
@@ -85,8 +80,8 @@ RUN setcap    cap_sys_chroot,cap_net_bind_service=+ep /nginx-ingress-controller 
   && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/unshare \
   && setcap    cap_net_bind_service=+ep /chroot/usr/local/nginx/sbin/nginx \
   && setcap -v cap_net_bind_service=+ep /chroot/usr/local/nginx/sbin/nginx \
-  && setcap    cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/dumb-init \
-  && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/dumb-init 
+  && setcap    cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/catatonit \
+  && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/catatonit 
 
 RUN  ln -sf /chroot/etc/nginx /etc/nginx \
   && ln -sf /chroot/tmp/nginx /tmp/nginx \
@@ -112,7 +107,7 @@ USER www-data
 
 EXPOSE 80 443
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/catatonit", "--"]
 
 CMD ["/nginx-ingress-controller"]
  
