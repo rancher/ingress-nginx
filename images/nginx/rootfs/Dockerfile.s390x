@@ -54,7 +54,8 @@ RUN dnf -y install \
       libmaxminddb0 \
       lmdb \
       wget \
-      libcap-progs
+      libcap-progs \
+      catatonit
 
 RUN dnf -y install 'dnf-command(config-manager)'
 RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/security:tls/openSUSE_Leap_15.3/security:tls.repo
