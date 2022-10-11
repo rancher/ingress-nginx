@@ -25,19 +25,12 @@ RUN yum -y update \
 RUN dnf -y install conntrack-tools findutils which
 
 COPY patches /patches
-COPY build.sh /
+COPY --chmod=0755 build.sh /
 
 RUN /build.sh
 
-# Pull static components from alpine
-FROM alpine:3.13 as extras
-
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache dumb-init
-
-# With UBI as base image
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+# With BCI as base image
+FROM registry.suse.com/bci/bci-base:latest
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -47,23 +40,26 @@ ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
-COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-RUN microdnf -y update && rm -rf /var/cache/yum
-RUN microdnf -y install lmdb-libs || rpm -iv http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/lmdb-libs-0.9.24-1.el8.x86_64.rpm
-RUN microdnf -y install \
-      util-linux \
-      findutils \
-      which \
-      yajl \
-      GeoIP \
-      libmaxminddb \
-      wget
+RUN rpm -iv http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/lmdb-libs-0.9.24-1.el8.x86_64.rpm
+RUN ln -s /usr/lib64/liblua5.3.so.5.3.0 /usr/local/lib/liblua-5.3.so
 
-RUN microdnf -y install crypto-policies-scripts
-
-RUN rm -rf /var/cache/yum
+RUN zypper addrepo \
+    -p 105 http://download.opensuse.org/tumbleweed/repo/oss/ download.opensuse.org-oss && \
+    zypper --gpg-auto-import-keys refresh
+RUN zypper install -y \
+        libcap-progs \
+        libmaxminddb0 \
+        libGeoIP1 \
+        crypto-policies-scripts \
+        wget \
+        which \
+        git \
+        libyajl2 \
+        make \
+        tar \
+        gzip \
+        catatonit
 
 RUN ldDirs=" \
       /usr/local/lib \
@@ -76,7 +72,7 @@ RUN /sbin/ldconfig
 
 RUN ln -s /usr/local/nginx/sbin/nginx /sbin/nginx
 RUN groupadd -rg 101 www-data
-RUN adduser -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+RUN useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 RUN writeDirs=" \
       /var/log/nginx \
@@ -91,8 +87,6 @@ RUN writeDirs=" \
     mkdir -p ${dir}; \
     chown -R www-data.www-data ${dir}; \
   done
-
-RUN microdnf clean all
 
 EXPOSE 80 443
 
