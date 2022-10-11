@@ -22,7 +22,7 @@ RUN dnf -y install conntrack-tools findutils which microdnf libcap-progs
 
 COPY etc /etc
 COPY patches /patches
-COPY build.sh /
+COPY --chmod=0755 build.sh /
 
 RUN /build.sh
 
@@ -54,7 +54,8 @@ RUN dnf -y install \
       libmaxminddb0 \
       lmdb \
       wget \
-      libcap-progs
+      libcap-progs \
+      catatonit
 
 RUN dnf -y install 'dnf-command(config-manager)'
 RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/security:tls/15.4/security:tls.repo
