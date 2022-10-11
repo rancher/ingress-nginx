@@ -1,4 +1,4 @@
-FROM rancher/hardened-build-base:v1.17.5b7
+FROM rancher/hardened-build-base:v1.19.4b1
 ARG STEP=ci
 ARG DAPPER_HOST_ARCH
 ARG DOCKER_USER
@@ -7,7 +7,7 @@ ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
     ARCH=${DAPPER_HOST_ARCH} \
     DOCKER_USER=${DOCKER_USER} \
     DOCKER_PASS=${DOCKER_PASS}
-RUN apk add openssl docker wget
+RUN apk add openssl docker wget jq
 ENV GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
 RUN mkdir -p /.docker/cli-plugins
 RUN  ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
