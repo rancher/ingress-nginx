@@ -130,7 +130,6 @@ export LUA_RESTY_GLOBAL_THROTTLE_VERSION=0.2.0
 
 # Check for recent changes:  https://github.com/microsoft/mimalloc/compare/v1.7.6...master
 export MIMALOC_VERSION=1.7.6
-
 export LIBMAXMINDDB_VERSION=1.5.2
 
 export BUILD_PATH=/tmp/build
