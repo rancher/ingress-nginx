@@ -47,8 +47,9 @@ build: ensure-buildx
 		--tag $(IMAGE):$(TAG)-$(PLATFORMS) rootfs
 
 # push the cross built image
-push: OUTPUT=--push
 push: build
+push:
+	docker push $(IMAGE):$(TAG)-$(PLATFORMS)
 
 # enable buildx
 ensure-buildx:
