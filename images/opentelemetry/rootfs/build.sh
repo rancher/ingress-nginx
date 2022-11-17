@@ -123,7 +123,7 @@ get_src()
 
 install_nginx()
 {
-  export NGINX_VERSION=1.21.6
+  export NGINX_VERSION=1.21.4
 
   # Check for recent changes: https://github.com/open-telemetry/opentelemetry-cpp-contrib/compare/2656a4...main
   export OPENTELEMETRY_CONTRIB_COMMIT=1ec94c82095bab61f06c7393b6f3272469d285af
