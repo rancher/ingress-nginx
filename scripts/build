@@ -10,7 +10,7 @@ PKG="k8s.io/ingress-nginx"
 rm -rf bin/*
 mkdir -p bin
 
-declare -a arches=("arm64" "amd64")
+declare -a arches=("arm64" "amd64" "arm" "s390x")
 for arch in "${arches[@]}"
 do
    ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
