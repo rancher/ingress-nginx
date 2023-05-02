@@ -1,0 +1,45 @@
+FROM docker:19.03.9
+ARG DAPPER_HOST_ARCH
+ARG STEP=ci
+ENV ARCH=${DAPPER_HOST_ARCH}
+RUN mkdir -p /.docker/cli-plugins
+RUN apk update && apk upgrade && apk add bash && ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
+ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm-v7 \
+    DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm64 \
+    DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64 \
+    DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
+RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
+
+FROM ubuntu:18.04
+ARG DAPPER_HOST_ARCH
+ARG DOCKER_USER
+ARG DOCKER_PASS
+ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
+    ARCH=${DAPPER_HOST_ARCH} \
+    DOCKER_USER=${DOCKER_USER} \
+    DOCKER_PASS=${DOCKER_PASS}
+RUN apt-get update && \
+    apt-get install -y gcc ca-certificates git wget curl vim less file zip make && \
+    rm -f /bin/sh && ln -s /bin/bash /bin/sh
+ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
+    GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
+RUN wget -O - https://golang.org/dl/go1.19.5.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+    curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
+COPY --from=0 /usr/local/bin/docker /usr/bin/docker
+RUN mkdir -p /.docker/cli-plugins
+COPY --from=0 /.docker/cli-plugins/docker-buildx /.docker/cli-plugins/docker-buildx
+ENV DOCKER_CLI_EXPERIMENTAL=enabled \
+    DOCKER_CONFIG=/.docker
+RUN docker buildx install
+ENV DAPPER_SOURCE /go/src/k8s.io/ingress-nginx/
+ENV DAPPER_OUTPUT ./bin ./dist
+ENV DAPPER_DOCKER_SOCKET true
+ENV DAPPER_ENV CROSS TAG
+ENV DAPPER_RUN_ARGS="--net host"
+ENV TRASH_CACHE ${DAPPER_SOURCE}/.trash-cache
+ENV HOME ${DAPPER_SOURCE}
+ENV GIT_IN_DAPPER true
+RUN mkdir -p /etc/nginx/geoip
+WORKDIR ${DAPPER_SOURCE}
+ENTRYPOINT ["./scripts/entry"]
+CMD [${STEP}]
