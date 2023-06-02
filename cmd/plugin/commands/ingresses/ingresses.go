@@ -223,9 +223,9 @@ func serviceToNameAndPort(svc *networking.IngressServiceBackend) (string, intstr
 	var svcName string
 	if svc != nil {
 		svcName = svc.Name
-		if svc.Port.Number > 0 {
-			return svcName, intstr.FromInt(int(svc.Port.Number))
-		}
+		// if svc.Port.Number > 0 {
+		// 	return svcName, intstr.FromInt(int(svc.Port.Number))
+		// }
 		if svc.Port.Name != "" {
 			return svcName, intstr.FromString(svc.Port.Name)
 		}
