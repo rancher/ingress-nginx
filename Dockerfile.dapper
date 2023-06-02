@@ -39,7 +39,7 @@ RUN mkdir -p /etc/nginx/geoip
 
 WORKDIR ${DAPPER_SOURCE}
 
-RUN apk add binutils glib-static
+RUN apk add binutils-gold glib-static
 
 ENTRYPOINT ["./scripts/entry"]
 CMD [${STEP}]
