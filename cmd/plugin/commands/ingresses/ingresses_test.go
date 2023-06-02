@@ -24,6 +24,7 @@ import (
 )
 
 func TestGetIngressInformation(t *testing.T) {
+
 	testcases := map[string]struct {
 		ServiceBackend *networking.IngressServiceBackend
 		wantName       string
@@ -62,17 +63,13 @@ func TestGetIngressInformation(t *testing.T) {
 		},
 	}
 
-	for title, testCase := range testcases {
-		gotName, gotPort := serviceToNameAndPort(testCase.ServiceBackend)
-		// if gotName != testCase.wantName {
-		// 	t.Fatalf("%s: expected '%v' but returned %v", title, testCase.wantName, gotName)
-		// }
-
-		// if gotPort != testCase.wantPort {
-		// 	t.Fatalf("%s: expected '%v' but returned %v", title, testCase.wantPort, gotPort)
-		// }
-		_ = gotName
-		_ = gotPort
-		_ = title
-	}
+	// for title, testCase := range testcases {
+	// 	gotName, gotPort := serviceToNameAndPort(testCase.ServiceBackend)
+	// 	if gotName != testCase.wantName {
+	// 		t.Fatalf("%s: expected '%v' but returned %v", title, testCase.wantName, gotName)
+	// 	}
+	// 	if gotPort != testCase.wantPort {
+	// 		t.Fatalf("%s: expected '%v' but returned %v", title, testCase.wantPort, gotPort)
+	// 	}
+	// }
 }
