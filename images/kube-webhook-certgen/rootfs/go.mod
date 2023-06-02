@@ -13,7 +13,6 @@ require (
 )
 
 require (
-	gotest.tools/v3 v3.0.3
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/go-logr/logr v0.4.0 // indirect
