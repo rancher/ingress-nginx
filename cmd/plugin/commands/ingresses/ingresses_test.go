@@ -41,6 +41,7 @@ func TestGetIngressInformation(t *testing.T) {
 					Number: 8080,
 				},
 			},
+		},
 		// 	wantName: "test",
 		// 	wantPort: intstr.IntOrString{
 		// 		Type:   intstr.Int,
