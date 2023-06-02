@@ -222,19 +222,19 @@ func getIngressRows(ingresses *[]networking.Ingress) []ingressRow {
 func serviceToNameAndPort(svc *networking.IngressServiceBackend) (string, intstr.IntOrString) {
 	var svcName string
 	if svc != nil {
-		fmt.Println("XXX - here 1")
 		svcName = svc.Name
-		fmt.Println("XXX - here 2")
+		// if svc.Port.Number > 0 {
+		// 	return svcName, intstr.FromInt(int(svc.Port.Number))
+		// }
+		// if svc.Port.Name != "" {
+		// 	return svcName, intstr.FromString(svc.Port.Name)
+		// }
 		if svc.Port.Number > 0 {
-			fmt.Println("XXX - here 3")
-			return svcName, intstr.FromInt(int(svc.Port.Number))
+			return svcName, intstr.IntOrString{}
 		}
-		fmt.Println("XXX - here 4")
 		if svc.Port.Name != "" {
-			fmt.Println("XXX - here 4")
-			return svcName, intstr.FromString(svc.Port.Name)
+			return svcName, intstr.IntOrString{}
 		}
-		fmt.Println("XXX - here 5")
 	}
 	return "", intstr.IntOrString{}
 }
