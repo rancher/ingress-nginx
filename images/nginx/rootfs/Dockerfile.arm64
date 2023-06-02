@@ -60,7 +60,8 @@ RUN zypper install -y \
     make \
     tar \
     gzip \
-    catatonit
+    catatonit \
+    glibc-devel-static
 
 RUN ldDirs=" \
       /usr/local/lib \
