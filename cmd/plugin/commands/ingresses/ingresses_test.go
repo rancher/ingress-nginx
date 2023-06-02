@@ -29,18 +29,18 @@ func TestGetIngressInformation(t *testing.T) {
 		wantName       string
 		wantPort       intstr.IntOrString
 	}{
-		"empty ingressServiceBackend": {
-			ServiceBackend: &networking.IngressServiceBackend{},
-			wantName:       "",
-			wantPort:       intstr.IntOrString{},
-		},
-		// "ingressServiceBackend with port 8080": {
-		// 	ServiceBackend: &networking.IngressServiceBackend{
-		// 		Name: "test",
-		// 		Port: networking.ServiceBackendPort{
-		// 			Number: 8080,
-		// 		},
-		// 	},
+		// "empty ingressServiceBackend": {
+		// 	ServiceBackend: &networking.IngressServiceBackend{},
+		// 	wantName:       "",
+		// 	wantPort:       intstr.IntOrString{},
+		// },
+		"ingressServiceBackend with port 8080": {
+			ServiceBackend: &networking.IngressServiceBackend{
+				Name: "test",
+				Port: networking.ServiceBackendPort{
+					Number: 8080,
+				},
+			},
 		// 	wantName: "test",
 		// 	wantPort: intstr.IntOrString{
 		// 		Type:   intstr.Int,
