@@ -123,6 +123,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace (
-	gotest.tools/v3 => gotest.tools/v3 v3.0.3
-)
+replace gotest.tools/v3 => gotest.tools/v3 v3.0.3
