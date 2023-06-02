@@ -10,7 +10,7 @@ ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
 RUN apk add openssl docker wget jq
 ENV GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
 RUN mkdir -p /.docker/cli-plugins
-RUN  ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
+RUN ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
 ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-arm-v7 \
     DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-arm64 \
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-amd64 \
@@ -38,5 +38,8 @@ ENV PLATFORMS=${ARCH}
 RUN mkdir -p /etc/nginx/geoip
 
 WORKDIR ${DAPPER_SOURCE}
+
+RUN apk add binutils
+
 ENTRYPOINT ["./scripts/entry"]
 CMD [${STEP}]
