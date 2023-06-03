@@ -32,8 +32,6 @@ ENV GIT_IN_DAPPER=true
 ENV DOCKER_IN_DOCKER_ENABLED=true
 ENV USER=0
 ENV VERBOSE=1
-# build only works on amd64 for now
-ENV PLATFORMS=${ARCH}
 
 RUN mkdir -p /etc/nginx/geoip
 
