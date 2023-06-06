@@ -16,12 +16,12 @@
 # Use a multi-stage build
 FROM rockylinux:8 as builder
 
-RUN yum -y update \
-  && yum -y upgrade \
-  && yum -y install epel-release 'dnf-command(config-manager)' \
-  && yum -y upgrade \
-  && yum config-manager --set-enabled powertools \
-  && yum -y install dnf
+RUN yum -y update && \
+    yum -y upgrade && \
+    yum -y install epel-release 'dnf-command(config-manager)' && \
+    yum -y upgrade && \
+    yum config-manager --set-enabled powertools && \
+    yum -y install dnf
 RUN dnf -y install conntrack-tools findutils which
 
 COPY patches /patches
@@ -30,7 +30,7 @@ COPY --chmod=0755 build.sh /
 RUN /build.sh
 
 # With BCI as base image
-FROM registry.suse.com/bci/bci-base:latest
+FROM registry.suse.com/bci/bci-base
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -48,18 +48,17 @@ RUN zypper addrepo \
     -p 105 http://download.opensuse.org/tumbleweed/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
 RUN zypper install -y \
-        libcap-progs \
-        libmaxminddb0 \
-        libGeoIP1 \
-        crypto-policies-scripts \
-        wget \
-        which \
-        git \
-        libyajl2 \
-        make \
-        tar \
-        gzip \
-        catatonit
+    libcap-progs \
+    libmaxminddb0 \
+    crypto-policies-scripts \
+    wget \
+    which \
+    git \
+    libyajl2 \
+    make \
+    tar \
+    gzip \
+    catatonit
 
 RUN ldDirs=" \
       /usr/local/lib \

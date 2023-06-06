@@ -14,52 +14,52 @@
 
 
 # Use a multi-stage build
-FROM registry.opensuse.org/opensuse/leap-dnf:15.4 as builder
+FROM rockylinux:8 as builder
 
-RUN dnf makecache && \
-    dnf -y upgrade
-RUN dnf -y install conntrack-tools findutils which microdnf libcap-progs
+RUN yum -y update && \
+    yum -y upgrade && \
+    yum -y install epel-release 'dnf-command(config-manager)' && \
+    yum -y upgrade && \
+    yum config-manager --set-enabled powertools && \
+    yum -y install dnf
+RUN dnf -y install conntrack-tools findutils which
 
 COPY patches /patches
 COPY --chmod=0755 build.sh /
 
 RUN /build.sh
 
-# Pull static components from alpine
-FROM alpine:3.18 as extras
-
-RUN apk update && \
-    apk upgrade && \
-    apk add -U --no-cache dumb-init
-
-# With OpenSUSE Leap DNF as base image
-FROM registry.opensuse.org/opensuse/leap-dnf:15.4
+# With BCI as base image
+FROM registry.suse.com/bci/bci-base
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
+
 ENV LUA_PATH="/usr/local/share/luajit-2.1.0-beta3/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/lib/lua/?.lua;;"
 ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
-COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
-RUN dnf -y install \
-    util-linux \
-    findutils \
-    which \
-    yajl \
-    libmaxminddb0 \
-    lmdb \
-    wget \
+RUN rpm -iv http://vault.centos.org/centos/8/BaseOS/aarch64/os/Packages/lmdb-libs-0.9.24-1.el8.aarch64.rpm
+RUN ln -s /usr/lib64/liblua5.3.so.5.3.0 /usr/local/lib/liblua-5.3.so
+
+RUN zypper addrepo \
+    -p 105 http://download.opensuse.org/tumbleweed/repo/oss/ download.opensuse.org-oss && \
+    zypper --gpg-auto-import-keys refresh
+RUN zypper install -y \
     libcap-progs \
-    catatonit
-
-RUN dnf -y install 'dnf-command(config-manager)'
-RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/security:tls/15.4/security:tls.repo
-RUN dnf -y install crypto-policies-scripts
-
-RUN rm -rf /var/cache/yum
+    libmaxminddb0 \
+    crypto-policies-scripts \
+    wget \
+    which \
+    git \
+    libyajl2 \
+    make \
+    tar \
+    gzip \
+    catatonit \
+    glibc-devel-static
 
 RUN ldDirs=" \
       /usr/local/lib \
@@ -87,8 +87,6 @@ RUN writeDirs=" \
     mkdir -p ${dir}; \
     chown -R www-data.www-data ${dir}; \
   done
-
-RUN dnf clean all
 
 EXPOSE 80 443
 
