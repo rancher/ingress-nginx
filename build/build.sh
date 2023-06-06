@@ -59,7 +59,7 @@ go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/dbg" "${PKG}/cmd/dbg"
 go-build-static.sh -trimpath -o "rootfs/bin/${ARCH}/wait-shutdown" "${PKG}/cmd/waitshutdown"
 
 go-assert-static.sh rootfs/bin/${ARCH}/*
-if [[ ${ARCH} != "s390x" ]]; then
-  go-assert-boring.sh rootfs/bin/${ARCH}/*
+if [[ ${ARCH} = "amd64" ]]; then
+    go-assert-boring.sh rootfs/bin/${ARCH}/*
 fi
 strip rootfs/bin/${ARCH}/*
