@@ -16,8 +16,8 @@
 # Use a multi-stage build
 FROM registry.opensuse.org/opensuse/leap-dnf:15.3 as builder
 
-RUN dnf makecache \
-  && dnf -y upgrade
+RUN dnf makecache && \
+    dnf -y upgrade
 RUN dnf -y install conntrack-tools findutils which microdnf libcap-progs
 
 COPY etc /etc
@@ -29,9 +29,9 @@ RUN /build.sh
 # Pull static components from alpine
 FROM alpine:3.13 as extras
 
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache dumb-init
+RUN apk update && \
+    apk upgrade && \
+    apk add -U --no-cache dumb-init
 
 # With OpenSUSE Leap DNF as base image
 FROM registry.opensuse.org/opensuse/leap-dnf:15.3
@@ -46,16 +46,16 @@ COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=extras /usr/bin/dumb-init /usr/bin/dumb-init
 
 RUN dnf -y install \
-      util-linux \
-      findutils \
-      which \
-      yajl \
-      GeoIP \
-      libmaxminddb0 \
-      lmdb \
-      wget \
-      libcap-progs \
-      catatonit
+    util-linux \
+    findutils \
+    which \
+    yajl \
+    GeoIP \
+    libmaxminddb0 \
+    lmdb \
+    wget \
+    libcap-progs \
+    catatonit
 
 RUN dnf -y install 'dnf-command(config-manager)'
 RUN dnf config-manager --add-repo https://download.opensuse.org/repositories/security:tls/openSUSE_Leap_15.3/security:tls.repo
