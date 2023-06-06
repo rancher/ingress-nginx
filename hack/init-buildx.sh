@@ -33,7 +33,7 @@ fi
 # Docker desktop already has these in versions recent enough to have buildx
 # We only need to do this setup on linux hosts
 # We don't need qemu in s390x, since we won't cross compile
-if [ "$(uname)" == 'Linux' ] && [ ${ARCH} != "s390x" ]; then
+if [ "$(uname)" == 'Linux' ] && [ ${ARCH} != "s390x" ] && [ ${ARCH} != "arm64" ]; then
   # NOTE: this is pinned to a digest for a reason!
   # Note2 (@rikatz) - Removing the pin, as apparently it's breaking new alpine builds
   # docker run --rm --privileged multiarch/qemu-user-static@sha256:28ebe2e48220ae8fd5d04bb2c847293b24d7fbfad84f0b970246e0a4efd48ad6 --reset -p yes
