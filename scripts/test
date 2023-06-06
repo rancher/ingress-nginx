@@ -7,7 +7,7 @@ echo Running tests
 
 FIND_COMMAND="find"
 if [ "$(go env GOHOSTOS)" = "darwin" ]; then
-  FIND_COMMAND="find ."
+    FIND_COMMAND="find ."
 fi
 
 PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|magefiles|bin|docs|test|controller/store|images|examples|hack)')"
