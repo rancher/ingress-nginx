@@ -102,6 +102,108 @@ volumes:
     path: /var/run/docker.sock
 
 ---
+kind: pipeline
+name: ci-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: ci
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper ci
+  environment:
+    DOCKER_PASS:
+      from_secret: docker_password
+    DOCKER_USER:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: e2e-test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper e2e-test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+  instance:
+    - drone-publish.rancher.io
+
+- name: validate
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper validate
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: build
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+
+- name: test
+  image: rancher/dapper:v0.5.3
+  commands:
+  - dapper test
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+- name: package
+  image: rancher/dapper:v0.5.7
+  commands:
+  - dapper package
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    instance:
+    - drone-pr.rancher.io
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+---
 
 kind: pipeline
 name: ci-s390x
@@ -207,6 +309,7 @@ steps:
         from_secret: docker_password
       platforms:
         - linux/amd64
+        - linux/arm64
         - linux/s390x
       target: "rancher/nginx:ingress-${DRONE_TAG}"
       template: "rancher/nginx:ingress-${DRONE_TAG}-ARCH"
@@ -225,6 +328,7 @@ trigger:
 
 depends_on:
   - ci
+  - ci-arm64
   - ci-s390x
 
 ---
@@ -241,6 +345,7 @@ steps:
         from_secret: docker_password
       platforms:
         - linux/amd64
+        - linux/arm64
         - linux/s390x
       target: "rancher/nginx-ingress-controller:${DRONE_TAG}"
       template: "rancher/nginx-ingress-controller:${DRONE_TAG}-ARCH"
@@ -259,4 +364,5 @@ trigger:
 
 depends_on:
   - ci
+  - ci-arm64
   - ci-s390x
