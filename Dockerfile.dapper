@@ -1,4 +1,4 @@
-FROM rancher/hardened-build-base:v1.19.4b1
+FROM rancher/hardened-build-base:v1.20.4b11
 ARG STEP=ci
 ARG DAPPER_HOST_ARCH
 ARG DOCKER_USER
@@ -7,10 +7,10 @@ ENV HOST_ARCH=${DAPPER_HOST_ARCH} \
     ARCH=${DAPPER_HOST_ARCH} \
     DOCKER_USER=${DOCKER_USER} \
     DOCKER_PASS=${DOCKER_PASS}
-RUN apk add openssl docker wget jq
+RUN apk add openssl docker wget jq binutils-gold glib-static
 ENV GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
 RUN mkdir -p /.docker/cli-plugins
-RUN  ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
+RUN ln -sf /bin/bash /bin/sh # use bash for subsequent variable expansion
 ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-arm-v7 \
     DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-arm64 \
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-amd64 \
@@ -32,11 +32,10 @@ ENV GIT_IN_DAPPER=true
 ENV DOCKER_IN_DOCKER_ENABLED=true
 ENV USER=0
 ENV VERBOSE=1
-# build only works on amd64 for now
-ENV PLATFORMS=${ARCH}
 
 RUN mkdir -p /etc/nginx/geoip
 
 WORKDIR ${DAPPER_SOURCE}
+
 ENTRYPOINT ["./scripts/entry"]
 CMD [${STEP}]
