@@ -490,7 +490,7 @@ cd "$BUILD_PATH"
 git clone --depth=100 https://github.com/google/ngx_brotli.git
 cd ngx_brotli
 # https://github.com/google/ngx_brotli/issues/156
-git reset --hard 63ca02abdcf79c9e788d2eedcc388d2335902e52
+git reset --hard 6e975bcb015f62e1f303054897783355e2a877dc
 git submodule init
 git submodule update
 
