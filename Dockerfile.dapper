@@ -1,4 +1,4 @@
-FROM rancher/hardened-build-base:v1.21.8b1
+FROM rancher/hardened-build-base:v1.21.9b1
 ARG STEP=ci
 ARG DAPPER_HOST_ARCH
 ARG DOCKER_USER
