@@ -1,0 +1,41 @@
+name: CI on Push and Pull Request
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - '*'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container:
+      image: rancher/dapper:v0.6.0
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: validate
+        run: dapper validate
+
+
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: rancher/dapper:v0.6.0
+    permissions:
+      contents: read
+    steps:
+      - name: Fix the not-a-git-repository issue
+        run: |
+          apk -U add git
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: build
+        run: dapper build
