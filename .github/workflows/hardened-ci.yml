@@ -1,0 +1,76 @@
+name: Hardened CI
+on: 
+  push:
+    branches:
+      - hardened-nginx-**
+  pull_request:
+    branches:
+      - hardened-nginx-**
+  release:
+    types:
+      - created
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Run Unit Tests
+      run: ./scripts/test
+
+    - name: Run E2E Tests
+      # Runner user seems to lack permissions to access the kubeconfig file
+      run: |
+        sudo chown -R $(id -u):$(id -g) ~/.kube/
+        SKIP_BUILDX_HACK=true ./scripts/e2e-test
+
+    # All subsequent steps are only run on release
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher' && github.event_name == 'release' && github.event.action == 'created'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher' && github.event_name == 'release' && github.event.action == 'created'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with presetup provided secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher' && github.event_name == 'release' && github.event.action == 'created'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Build Base Image
+      if: github.event_name == 'release' && github.event.action == 'created'
+      env:
+        REGISTRY: ${{ github.repository_owner }}
+      run: ./scripts/build
+
+    - name: Build And Push Full Nginx Controller
+      if: github.event_name == 'release' && github.event.action == 'created'
+      env:
+        REGISTRY: ${{ github.repository_owner }}
+      run: ./scripts/package
