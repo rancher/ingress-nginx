@@ -15,6 +15,8 @@
 # Add the following 'help' target to your Makefile
 # And add help text after each target name starting with '\#\#'
 
+# Only call make targets from within .scipts/*, which overrides relevant build variables with rancher specific values
+
 .DEFAULT_GOAL:=help
 
 .EXPORT_ALL_VARIABLES:
@@ -282,3 +284,42 @@ release: builder clean
 build-docs:
 	pip install -r docs/requirements.txt
 	mkdocs build --config-file mkdocs.yml
+
+# Derived from the release target, but only builds and pushes a single image.
+# Binaries are built separately.
+# Changed the name to match existing rancher published image tags
+.PHONY: push-image
+push-image: REGISTRY=$(REPO)
+push-image: BUILDX_PLATFORMS=$(TARGET_PLATFORMS)
+push-image: builder
+	docker buildx build \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		$(IID_FILE_FLAG) \
+		--no-cache \
+		--push \
+		--progress plain \
+		--platform $(BUILDX_PLATFORMS) \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		-t $(REGISTRY)/nginx-ingress-controller:$(TAG) rootfs
+
+.PHONY: push-chroot-image
+push-chroot-image: REGISTRY=$(REPO)
+push-chroot-image: BUILDX_PLATFORMS=$(TARGET_PLATFORMS)
+push-chroot-image: builder
+	docker buildx build \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		$(IID_FILE_FLAG) \
+		--no-cache \
+		--push \
+		--progress plain \
+		--platform $(BUILDX_PLATFORMS)  \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		-t $(REGISTRY)/nginx-ingress-controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
