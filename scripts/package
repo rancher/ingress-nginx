@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e -x
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+
+# Only build the final images for the current host platform, using regular docker build.
+# Only used for local builds, CI uses external GH actions + make targets to build and push images
+docker buildx use default
+make image
+make image-chroot

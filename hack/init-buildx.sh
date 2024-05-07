@@ -18,6 +18,10 @@ if [ -n "$DEBUG" ]; then
 	set -x
 fi
 
+if [ -n "$SKIP_BUILDX_HACK" ]; then
+  exit 0
+fi
+
 set -o errexit
 set -o nounset
 set -o pipefail
