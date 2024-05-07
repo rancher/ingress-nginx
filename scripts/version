@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [ "$GIT_IN_DAPPER" = true ]; then
+    git config --global user.email "rancher-ci@rancher.com"
+    git config --global user.name "rancher-ci"
+fi
+
+# go.work.sum is highly depent on the local build environment, so we ignore it
+if [ -n "$(git status --porcelain --untracked-files=no | grep -v 'M go.work.sum')" ]; then
+    DIRTY="-dirty"
+fi
+
+# fetch tag information
+git fetch
+
+GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse --short HEAD)}
+GIT_TAG=$(git tag -l --contains HEAD | head -n 1)
+
+if [[ -z "$DIRTY" && -n "$GIT_TAG" ]]; then
+    VERSION=$GIT_TAG
+else
+    VERSION="${GIT_COMMIT}${DIRTY}"
+fi
+
+if [ -z "${ARCH}" ]; then
+    ARCH=amd64
+fi
+
+export TAG=${TAG:-$VERSION}
+export PKG="k8s.io/ingress-nginx"
+export PLATFORMS=${PLATFORMS:-${ARCH}}
+export REGISTRY=${REGISTRY:-rancher}
+export NGINX_TAG=ingress-${TAG}
+export BASE_IMAGE=${REGISTRY}/nginx:${NGINX_TAG}
