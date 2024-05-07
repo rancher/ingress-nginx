@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+TAG=${NGINX_TAG}-e2e
+
+missing_libs=$(docker run rancher/nginx:${TAG} /bin/bash -c "ldd /etc/nginx/modules/*")
+
+echo "$missing_libs" | awk '
+/\/etc\/nginx\/modules\// { 
+    module = $1; 
+    next 
+} 
+/=> not found/ { 
+    print "Module " module " is missing library: " $1 
+}'
+
+if echo "$missing_libs" | grep -q "not found"; then
+  exit 1
+fi
