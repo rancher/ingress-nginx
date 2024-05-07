@@ -236,8 +236,9 @@ BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64,linux/s390x
 
 .PHONY: release # Build a multi-arch docker image
 release: ensure-buildx clean
-	echo "Building binaries..."
-	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
+# Rancher CI: the build has been done in the build step in the scripts/ci
+#	echo "Building binaries..."
+#	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
 	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
 
