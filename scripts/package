@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e -x
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+
+# If #GIT_TAG is present, then we build binaries and release images for multiple arches and push all to registry
+if [[ -n "$GIT_TAG" ]] && [ "$GITHUB_ACTIONS" = "true" ]; then
+    ARCH="amd64 arm64" PLATFORMS="amd64 arm64" BUILDX_PLATFORMS="linux/amd64,linux/arm64" make release
+else
+    # Only build the images for the current host platform, using regular docker build
+    docker buildx use default
+    make build # goboring hardened binaries
+    make image
+    make image-chroot
+fi
