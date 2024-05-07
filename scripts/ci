@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e -x
+
+cd $(dirname $0)
+
+./validate
+./test
+# if e2e run ./e2e-test
+./build
+./package

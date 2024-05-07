@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e -x
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+if ! command -v kind &> /dev/null; then
+  ./scripts/e2e-test-install-deps
+fi
+
+docker buildx use default
+TAG=${NGINX_TAG}-e2e make -C images/nginx build
+
+# If running e2e locally over and over, you can skip image creation
+SKIP_IMAGE_CREATION=${SKIP_IMAGE_CREATION:-false} NGINX_BASE_IMAGE=${BASE_IMAGE}-e2e make kind-e2e-test
+

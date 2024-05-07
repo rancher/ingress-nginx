@@ -15,6 +15,8 @@
 # Add the following 'help' target to your Makefile
 # And add help text after each target name starting with '\#\#'
 
+# Only call make targets from within .scipts/*, which overrides relevant build variables with rancher specific values
+
 .DEFAULT_GOAL:=help
 
 .EXPORT_ALL_VARIABLES:
@@ -243,6 +245,7 @@ show-version:
 PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
+# Changed the name to match existing rancher published image tags
 .PHONY: release # Build a multi-arch docker image
 release: ensure-buildx clean
 	echo "Building binaries..."
@@ -254,27 +257,25 @@ release: ensure-buildx clean
 		--no-cache \
 		$(MAC_DOCKER_FLAGS) \
 		--push \
-		--pull \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller:$(TAG) rootfs
+		-t $(REGISTRY)/nginx-ingress-controller:$(TAG) rootfs
 
 	docker buildx build \
 		--no-cache \
 		$(MAC_DOCKER_FLAGS) \
 		--push \
-		--pull \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS)  \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
+		-t $(REGISTRY)/nginx-ingress-controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
 
 .PHONY: build-docs
 build-docs:
