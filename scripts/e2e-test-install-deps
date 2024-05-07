@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e -x
+
+ARCH=${ARCH:-amd64}
+K8S_STABLE=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+
+curl -LO "https://dl.k8s.io/release/${K8S_STABLE}/bin/linux/${ARCH}/kubectl"
+curl -LO "https://dl.k8s.io/${K8S_STABLE}/bin/linux/${ARCH}/kubectl.sha256"
+echo "$(<kubectl.sha256) kubectl" | sha256sum --check
+install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+
+curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-${ARCH}"
+install -o root -g root -m 0755 kind /usr/local/bin/kind
+kind --version
+
+curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+go get github.com/onsi/ginkgo/ginkgo
