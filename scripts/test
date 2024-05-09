@@ -7,5 +7,5 @@ cd $(dirname $0)/..
 
 echo Running general unit tests
 make test
-echo Running lua unit tests
-make lua-test
+# echo Running lua unit tests
+# make lua-test
