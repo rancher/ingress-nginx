@@ -16,14 +16,8 @@ ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE} as chroot
 
-# This intermediary image will be used only to copy all the required files to the chroot
-# TODO: Simplify in a future to a single Dockerfile
 COPY chroot.sh /chroot.sh
-RUN apk update \
-  && apk upgrade \
-  && /chroot.sh
-
-FROM alpine:3.20
+RUN /chroot.sh
 
 ARG TARGETARCH
 ARG VERSION
@@ -44,22 +38,6 @@ LABEL build_id="${BUILD_ID}"
 ENV LUA_PATH="/usr/local/share/luajit-2.1.0-beta3/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/lib/lua/?.lua;;"
 ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
-
-RUN apk update \
-  && apk upgrade \
-  && apk add -U --no-cache \
-     bash \
-     openssl \
-     ca-certificates \
-     dumb-init \
-     tzdata \
-     diffutils \
-     util-linux \
-  && ln -s /usr/local/nginx/sbin/nginx /sbin/nginx \
-  && adduser -S -D -H -u 101 -h /usr/local/nginx \
-    -s /sbin/nologin -G www-data -g www-data www-data 
-
-COPY --from=chroot /chroot /chroot
 
 COPY --chown=www-data:www-data etc /chroot/etc
 
@@ -83,18 +61,17 @@ RUN bash -xeu -c ' \
   # LD_LIBRARY_PATH does not work so below is needed for  opentelemetry/other modules
   # Put libs of newer modules under `/modules_mount/<other>/lib` and add that path below
   # Could get complicated arch specific paths become a need
-  && echo "/lib:/usr/lib:/usr/local/lib:/modules_mount/etc/nginx/modules/otel" > /chroot/etc/ld-musl-x86_64.path
+  && echo "/lib:/usr/lib:/usr/local/lib:/modules_mount/etc/nginx/modules/otel" > /chroot/etc/ld-musl-x86_64.path \
+  && echo "/lib:/usr/lib:/usr/local/lib:/modules_mount/etc/nginx/modules/otel" > /chroot/etc/ld-musl-aarch64.path
 
-RUN apk add --no-cache libcap \
-  && setcap    cap_sys_chroot,cap_net_bind_service=+ep /nginx-ingress-controller \
+RUN setcap    cap_sys_chroot,cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /nginx-ingress-controller \
   && setcap    cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/unshare \
   && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/unshare \
   && setcap    cap_net_bind_service=+ep /chroot/usr/local/nginx/sbin/nginx \
   && setcap -v cap_net_bind_service=+ep /chroot/usr/local/nginx/sbin/nginx \
-  && setcap    cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/dumb-init \
-  && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/dumb-init \
-  && apk del libcap
+  && setcap    cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/catatonit \
+  && setcap -v cap_sys_chroot,cap_net_bind_service=+ep /usr/bin/catatonit
 
 RUN  ln -sf /chroot/etc/nginx /etc/nginx \
   && ln -sf /chroot/tmp/nginx /tmp/nginx \
@@ -104,13 +81,13 @@ RUN  ln -sf /chroot/etc/nginx /etc/nginx \
   && chown www-data:www-data /chroot/var/log/nginx/access.log \
   && echo "" > /chroot/etc/resolv.conf \
   && chown -R www-data.www-data /chroot/var/log/nginx /chroot/etc/resolv.conf \
-  && mknod -m 0666 /chroot/dev/null c 1 3 \
-  && mknod -m 0666 /chroot/dev/random c 1 8 \
-  && mknod -m 0666 /chroot/dev/urandom c 1 9 \
-  && mknod -m 0666 /chroot/dev/full c 1 7 \
-  && mknod -m 0666 /chroot/dev/ptmx c 5 2 \
-  && mknod -m 0666 /chroot/dev/zero c 1 5 \
-  && mknod -m 0666 /chroot/dev/tty c 5 0
+  && mknod -m 0666 /chroot/dev/null c 1 3 || true \
+  && mknod -m 0666 /chroot/dev/random c 1 8 || true \
+  && mknod -m 0666 /chroot/dev/urandom c 1 9 || true \
+  && mknod -m 0666 /chroot/dev/full c 1 7 || true \
+  && mknod -m 0666 /chroot/dev/ptmx c 5 2 || true \
+  && mknod -m 0666 /chroot/dev/zero c 1 5 || true \
+  && mknod -m 0666 /chroot/dev/tty c 5 0 || true
 
 RUN mkdir -p /chroot/modules_mount \
   && mkdir -p modules_mount \
@@ -119,7 +96,7 @@ RUN mkdir -p /chroot/modules_mount \
 USER www-data
 
 EXPOSE 80 443
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/catatonit", "--"]
 
 CMD ["/nginx-ingress-controller"]
  
