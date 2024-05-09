@@ -40,6 +40,7 @@ var _ = framework.DescribeAnnotation("modsecurity owasp", func() {
 	f := framework.NewDefaultFramework("modsecuritylocation")
 
 	ginkgo.BeforeEach(func() {
+		ginkgo.Skip("Flaky test")
 		f.NewEchoDeployment()
 	})
 

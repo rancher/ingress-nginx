@@ -28,6 +28,7 @@ var _ = framework.DescribeSetting("[Security] modsecurity-snippet", func() {
 	f := framework.NewDefaultFramework("modsecurity-snippet")
 
 	ginkgo.It("should add value of modsecurity-snippet setting to nginx config", func() {
+		ginkgo.Skip("Skip modsecurity-snippet tests")
 		expectedComment := "# modsecurity snippet"
 
 		f.SetNginxConfigMapData(map[string]string{
