@@ -66,8 +66,9 @@ const (
 	sslCiphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256"
 
 	// SSL enabled protocols to use
-	// https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_protocols
-	sslProtocols = "TLSv1.2 TLSv1.3"
+	// http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_protocols
+	// Limited to TLSv1.2 to work with goboring crypto library
+	sslProtocols = "TLSv1.2"
 
 	// Disable TLS 1.3 early data
 	// https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_early_data
