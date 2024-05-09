@@ -29,5 +29,12 @@ if [ -z "${PKG}" ]; then
   exit 1
 fi
 
-go test -v \
-  $(go list "${PKG}/..." | grep -v vendor | grep -v '/test/e2e' | grep -v images | grep -v "docs/examples")
+TEST_PACKAGES=(
+  "${PKG}/pkg/..."
+  "${PKG}/internal/..."
+  "${PKG}/cmd/..."
+)
+
+for pkg in "${TEST_PACKAGES[@]}"; do
+  go test -v "$pkg"
+done
