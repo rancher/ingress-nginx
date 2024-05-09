@@ -110,7 +110,7 @@ clean-chroot-image: ## Removes local image
 
 .PHONY: build
 build:  ## Build ingress controller, debug tool and pre-stop hook.
-	E2E_IMAGE=golang:$(GO_VERSION)-alpine3.19 USE_SHELL=/bin/sh build/run-in-docker.sh \
+	E2E_IMAGE=rancher/hardened-build-base:v1.21.10b1 USE_SHELL=/bin/sh build/run-in-docker.sh \
 		MAC_OS=$(MAC_OS) \
 		PKG=$(PKG) \
 		ARCH=$(ARCH) \
@@ -243,7 +243,7 @@ BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 .PHONY: release # Build a multi-arch docker image
 release: ensure-buildx clean
 	echo "Building binaries..."
-	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
+	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) PLATFORM=$(PLATFORM) make build;)
 
 	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
 
