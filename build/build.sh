@@ -14,13 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GO_BUILD_CMD="go build"
-
-#if [ -n "$DEBUG" ]; then
-#	set -x
-#	GO_BUILD_CMD="go build -v"
-#fi
-
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -32,38 +25,42 @@ if [ -z "$PKG" ] || [ -z "$ARCH" ] || [ -z "$COMMIT_SHA" ] || [ -z "$REPO_INFO" 
 fi
 
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export GOARCH="${ARCH}"
 
 TARGETS_DIR="rootfs/bin/${ARCH}"
 echo "Building targets for ${ARCH}, generated targets in ${TARGETS_DIR} directory."
 
+export GO_LDFLAGS="-linkmode=external -buildid= "" \
+    -X ${PKG}/version.RELEASE=${TAG} \
+    -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
+    -X ${PKG}/version.REPO=${REPO_INFO}"
+
+
 echo "Building ${PKG}/cmd/nginx"
 
-${GO_BUILD_CMD} \
-  -trimpath -ldflags="-buildid= -w -s \
-  -X ${PKG}/version.RELEASE=${TAG} \
-  -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-  -X ${PKG}/version.REPO=${REPO_INFO}" \
+go-build-static.sh \
+  -trimpath \
   -buildvcs=false \
   -o "${TARGETS_DIR}/nginx-ingress-controller" "${PKG}/cmd/nginx"
 
 echo "Building ${PKG}/cmd/dbg"
 
-${GO_BUILD_CMD} \
-  -trimpath -ldflags="-buildid= -w -s \
-  -X ${PKG}/version.RELEASE=${TAG} \
-  -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-  -X ${PKG}/version.REPO=${REPO_INFO}" \
+go-build-static.sh \
+  -trimpath \
   -buildvcs=false \
   -o "${TARGETS_DIR}/dbg" "${PKG}/cmd/dbg"
 
 echo "Building ${PKG}/cmd/waitshutdown"
 
-${GO_BUILD_CMD} \
-  -trimpath -ldflags="-buildid= -w -s \
-  -X ${PKG}/version.RELEASE=${TAG} \
-  -X ${PKG}/version.COMMIT=${COMMIT_SHA} \
-  -X ${PKG}/version.REPO=${REPO_INFO}" \
+go-build-static.sh \
+  -trimpath \
   -buildvcs=false \
   -o "${TARGETS_DIR}/wait-shutdown" "${PKG}/cmd/waitshutdown"
+
+# Ensure that the binaries are static and use boringcrypto
+go-assert-static.sh rootfs/bin/${ARCH}/*
+if [[ ${ARCH} = "amd64" ]]; then
+    go-assert-boring.sh rootfs/bin/${ARCH}/*
+fi
+strip rootfs/bin/${ARCH}/*

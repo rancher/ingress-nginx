@@ -68,7 +68,8 @@ const (
 
 	// SSL enabled protocols to use
 	// http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_protocols
-	sslProtocols = "TLSv1.2 TLSv1.3"
+	// Limited to TLSv1.2 to work with goboring crypto library
+	sslProtocols = "TLSv1.2"
 
 	// Disable TLS 1.3 early data
 	// http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_early_data
