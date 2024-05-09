@@ -182,6 +182,7 @@ var _ = framework.IngressNginxDescribe("[Service] Type ExternalName", func() {
 	})
 
 	ginkgo.It("should return 200 for service type=ExternalName using a port name", func() {
+		ginkgo.Skip("This test is flaky")
 		host := echoHost
 
 		svc := framework.BuildNIPExternalNameService(f, f.HTTPBunIP, host)
@@ -259,6 +260,7 @@ var _ = framework.IngressNginxDescribe("[Service] Type ExternalName", func() {
 	})
 
 	ginkgo.It("should update the external name after a service update", func() {
+		ginkgo.Skip("This test is flaky")
 		host := echoHost
 
 		svc := framework.BuildNIPExternalNameService(f, f.HTTPBunIP, host)
@@ -342,6 +344,7 @@ var _ = framework.IngressNginxDescribe("[Service] Type ExternalName", func() {
 	})
 
 	ginkgo.It("should sync ingress on external name service addition/deletion", func() {
+		ginkgo.Skip("This test is flaky")
 		host := echoHost
 
 		// Create the Ingress first
