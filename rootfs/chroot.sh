@@ -42,9 +42,10 @@ for dir in "${writeDirs[@]}"; do
   chown -R www-data.www-data ${dir};
 done
 
-mkdir -p  /chroot/lib /chroot/proc /chroot/usr /chroot/bin /chroot/dev /chroot/run 
+mkdir -p  /chroot/lib /chroot/proc /chroot/usr /chroot/bin /chroot/dev /chroot/run  /chroot/lib64
 cp /etc/passwd /etc/group /etc/hosts /chroot/etc/
 cp -a /usr/* /chroot/usr/
 cp -a /etc/nginx/* /chroot/etc/nginx/
 cp -a /etc/ingress-controller/* /chroot/etc/ingress-controller/
 cp /lib/ld-musl-* /lib/libcrypto* /lib/libssl* /lib/libz* /chroot/lib/
+cp /lib64/libcrypto* /lib64/libssl* /lib64/libz* /chroot/lib64/ || true
