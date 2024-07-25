@@ -55,6 +55,7 @@ RUN zypper install -y --allow-vendor-change \
     libyajl2 \
     openssl-3 \
     libicu73_2 \
+    liblua5_4-5 \
     make \
     tar \
     gzip \
