@@ -1,0 +1,25 @@
+name: CI on Releasing Tag
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    container:
+      image: rancher/dapper:v0.6.0
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    steps:
+      - name: Add git
+        run: |
+          apk add --no-cache git
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: tag
+        run: |
+          dapper ci
