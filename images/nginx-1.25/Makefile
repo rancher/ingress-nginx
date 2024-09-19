@@ -42,6 +42,18 @@ build: ensure-buildx
 		--pull \
 		--tag $(IMAGE):$(TAG) rootfs
 
+.PHONY: push-image
+push-image:
+	docker buildx build \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		--no-cache \
+		--platform=$(BUILDX_PLATFORMS) \
+		$(OUTPUT) \
+		--progress=$(PROGRESS) \
+		--push \
+		--tag $(IMAGE):$(TAG) rootfs
+
 # push the cross built image
 push: OUTPUT=--push
 push: build
