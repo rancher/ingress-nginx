@@ -274,6 +274,54 @@ release: ensure-buildx clean
 		--build-arg BUILD_ID="$(BUILD_ID)" \
 		-t $(REGISTRY)/nginx-ingress-controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
 
+.PHONY: push-image
+push-image: ensure-buildx clean
+	echo "Building binaries..."
+	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) PLATFORM=$(PLATFORM) make build;)
+
+	echo "Building and pushing nginx-ingress-controller image...$(BUILDX_PLATFORMS)"
+
+	docker buildx build \
+		--no-cache \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		--platform $(BUILDX_PLATFORMS) \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		--build-arg TAG=$(TAG:$(BUILD_META)=) \
+		--tag $(REGISTRY)/nginx-ingress-controller:$(TAG)
+		--tag $(REGISTRY)/nginx-ingress-controller:$(TAG)-$(ARCH) \
+		--push \
+		rootfs
+
+.PHONY: push-image-nginx-1-25
+push-image-nginx-1-25: ensure-buildx clean
+	make -C images/nginx-1.25 push-image
+
+.PHONY: push-image-chroot
+push-image-chroot: ensure-buildx clean
+	echo "Building binaries..."
+	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) PLATFORM=$(PLATFORM) make build;)
+
+	echo "Building and pushing nginx-ingress-controller-chroot image...$(BUILDX_PLATFORMS)"
+
+	docker buildx build \
+		--no-cache \
+		$(MAC_DOCKER_FLAGS) \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		--platform $(BUILDX_PLATFORMS)  \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		--tag $(REGISTRY):nginx-ingress-controller-chroot:$(TAG) \
+		--tag $(REGISTRY):nginx-ingress-controller-chroot:$(TAG)-$(ARCH) \
+		--push \
+		rootfs -f rootfs/Dockerfile-chroot
+
 .PHONY: build-docs
 build-docs:
 	pip install -r docs/requirements.txt
