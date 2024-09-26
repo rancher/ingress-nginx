@@ -1,7 +1,0 @@
-# See the OWNERS docs: https://www.kubernetes.dev/docs/guide/owners
-
-approvers:
-- ingress-nginx-docs-maintainers
-
-labels:
-- area/docs
