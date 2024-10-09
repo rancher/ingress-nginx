@@ -15,7 +15,7 @@
 NAME ?=
 
 BUILDER ?= ingress-nginx
-PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
+PLATFORMS ?= linux/amd64,linux/arm64
 REGISTRY ?= us-central1-docker.pkg.dev/k8s-staging-images/ingress-nginx
 IMAGE ?= $(REGISTRY)/$(NAME)
 TAG ?= $(shell cat $(NAME)/TAG)
@@ -40,6 +40,7 @@ build: builder
 		--label org.opencontainers.image.licenses="Apache-2.0" \
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--progress=plain \
 		$(EXTRAARGS) \
 		$(NAME)/rootfs \
 		--tag $(IMAGE):$(TAG) \
