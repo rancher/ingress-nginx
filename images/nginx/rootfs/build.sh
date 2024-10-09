@@ -134,53 +134,50 @@ get_src()
 
 # install required packages to build
 # Dependencies from "ninja" and below are OTEL dependencies
-apk add \
+zypper install -y \
   bash \
-  gcc \
+  gcc12 \
   clang \
-  libc-dev \
   make \
   automake \
-  openssl-dev \
-  pcre-dev \
-  zlib-dev \
-  linux-headers \
-  libxslt-dev \
-  gd-dev \
-  perl-dev \
-  libedit-dev \
+  libopenssl-devel \
+  pcre-devel \
+  zlib-devel \
+  linux-glibc-devel \
+  libxslt-devel \
+  gd-devel \
+  libedit-devel \
   mercurial \
-  alpine-sdk \
+  abseil-cpp-devel \
   findutils \
-  curl \
   ca-certificates \
   patch \
-  libaio-dev \
+  libaio-devel \
   openssl \
   cmake \
   util-linux \
-  lmdb-tools \
+  lmdb \
   wget \
-  curl-dev \
-  libprotobuf \
-  git g++ pkgconf flex bison doxygen yajl-dev lmdb-dev libtool autoconf libxml2 libxml2-dev \
+  libcurl-devel \
+  protobuf-devel \
+  git pkgconf gcc12-c++ flex bison doxygen libyajl-devel lmdb-devel libtool autoconf libxml2-2 libxml2-devel \
   python3 \
-  libmaxminddb-dev \
+  libmaxminddb-devel \
   bc \
   unzip \
   dos2unix \
-  yaml-cpp \
-  coreutils \
+  libyaml-cpp0_6 \
   ninja \
-  gtest-dev \
+  gtest \
   git \
-  build-base \
+  lua54-devel \
+  gzip \
+  gawk \
   pkgconfig \
-  c-ares-dev \
-  re2-dev \
-  grpc-dev \
-  protobuf-dev
-
+  c-ares-devel \
+  re2-devel \
+  grpc-devel \
+  protobuf-devel
 # apk add -X http://dl-cdn.alpinelinux.org/alpine/edge/testing opentelemetry-cpp-dev
 
 mkdir -p /etc/nginx
@@ -293,6 +290,8 @@ ln -s "$LUAJIT_INC" /usr/local/include/lua
 
 cd "$BUILD_PATH/opentelemetry-cpp"
 export CXXFLAGS="-DBENCHMARK_HAS_NO_INLINE_ASSEMBLY"
+export CC="gcc-12"
+export CXX="g++-12"
 cmake -B build -G Ninja -Wno-dev \
         -DOTELCPP_PROTO_PATH="${BUILD_PATH}/opentelemetry-proto/" \
         -DCMAKE_INSTALL_PREFIX=/usr \
@@ -597,7 +596,7 @@ mkdir -p out/release
 cd out/release
 
 # See this issue for why we disable architecture specific optimizations: https://github.com/kubernetes/ingress-nginx/issues/13608.
-cmake -DMI_NO_OPT_ARCH=ON ../..
+cmake -DMI_NO_OPT_ARCH=ON -DCMAKE_INSTALL_LIBDIR=lib ../..
 
 make
 make install
@@ -613,7 +612,8 @@ writeDirs=( \
   /var/log/nginx \
 );
 
-adduser -S -D -H -u 101 -h /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
+groupadd -rg 101 www-data
+useradd -u 101 -M -d /usr/local/nginx -s /sbin/nologin -G www-data -g www-data www-data
 
 for dir in "${writeDirs[@]}"; do
   mkdir -p ${dir};
