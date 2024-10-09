@@ -32,7 +32,7 @@ IMAGE = $(REGISTRY)/nginx
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
 # build with buildx
-PLATFORMS?=linux/amd64,linux/arm,linux/arm64
+PLATFORMS?=linux/amd64,linux/arm64
 OUTPUT=
 PROGRESS=plain
 build: ensure-buildx
