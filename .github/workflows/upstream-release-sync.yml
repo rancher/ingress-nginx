@@ -1,0 +1,135 @@
+name: Sync with upstream ingress-nginx releases and cherry-pick Rancher-specific changes
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs daily at midnight
+  workflow_dispatch:
+
+jobs:
+  create-branches:
+    runs-on: ubuntu-latest
+    outputs:
+      new-release-branches: ${{ steps.create-release-branches.outputs.NEW_RELEASE_BRANCHES }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: 'rancher-ingress-nginx'
+          fetch-depth: 0
+          fetch-tags: true
+  
+      - name: Configure git user
+        run: |
+          echo "[INFO] Setting up git user in git repository."
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Fetch the new tags from kubernetes/ingress-nginx repository
+        run: |
+          cd rancher-ingress-nginx
+          $GITHUB_WORKSPACE/rancher-ingress-nginx/scripts/check-for-new-tag.sh
+
+      - name: Create new release branches in rancher/ingress-nginx
+        id: create-release-branches
+        run: |
+          cd rancher-ingress-nginx
+          $GITHUB_WORKSPACE/rancher-ingress-nginx/scripts/create-release-branch.sh
+
+      - name: 'Tar files'
+        run: |
+          tar -czf rancher-ingress-nginx.tar.gz -C rancher-ingress-nginx .
+      
+      - name: Push git repo to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-repo
+          path: rancher-ingress-nginx.tar.gz
+
+  build-and-validate:
+    needs: create-branches
+    runs-on: runs-on,runner=4cpu-linux-x64,run-id=${{ github.run_id }}
+    container:
+      image: rancher/dapper:v0.6.0
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        branches: ${{ fromJSON(needs.create-branches.outputs.new-release-branches) }}
+      fail-fast: false
+    steps:
+      - name: Fix the not-a-git-repository issue
+        run: |
+          apk -U add git
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Checkout repository with branch ${{ matrix.branches }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branches }}
+
+      - name: Download git repo from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: git-repo
+
+      - name: Extract Artifact
+        run: |
+          tar -zxf rancher-ingress-nginx.tar.gz
+          rm rancher-ingress-nginx.tar.gz
+
+      - name: Read App Secrets
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APP_ID ;
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATE_KEY
+      - name: Create App Token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.PRIVATE_KEY }}
+
+      - name: Validate with Dapper for ${{ matrix.branches }}
+        run: dapper validate
+
+      - name: Build with Dapper for ${{ matrix.branches }}
+        run: |
+          git stash --all
+          dapper build
+
+      - name: Push release tag for ${{ matrix.branches }}
+        run: |
+          # To stash any changes created by dapper CI run
+          git stash --all
+
+          if ! $(git push --quiet --no-progress origin $RELEASE_BRANCH > /dev/null); then
+              echo "[ERROR] Failed while pushing the branch $RELEASE_BRANCH to rancher repository."
+              exit 1
+          else
+              echo "[INFO] Successfully pushed branch $RELEASE_BRANCH: https://github.com/rancher/ingress-nginx/tree/$RELEASE_BRANCH"
+          fi
+
+          # Remove the '-fix' suffix to create the tag name
+          TAG="${RELEASE_BRANCH%-fix*}"
+          TAG="$TAG-rancher1"
+
+          echo "[INFO] Creating the tag: $TAG for branch: $RELEASE_BRANCH"
+          # Create the tag
+          if ! git tag "$TAG" "$RELEASE_BRANCH"; then
+              echo "[ERROR] Failed while creating the tag $TAG in the repository."
+              exit 1
+          fi
+
+          # Push the tag to origin
+          if ! git push origin "$TAG"; then
+              echo "[ERROR] Failed while pushing the tag $TAG to the repository."
+              exit 1
+          else
+              echo "[INFO] Successfully pushed tag $TAG: https://github.com/rancher/ingress-nginx/releases/tag/$TAG"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_BRANCH: ${{ matrix.branches }}
