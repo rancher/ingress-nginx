@@ -64,11 +64,6 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Checkout repository with branch ${{ matrix.branches }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.branches }}
-
       - name: Download git repo from artifact
         uses: actions/download-artifact@v4
         with:
@@ -79,12 +74,23 @@ jobs:
           tar -zxf rancher-ingress-nginx.tar.gz
           rm rancher-ingress-nginx.tar.gz
 
+      - name: Validate with Dapper for ${{ matrix.branches }}
+        run: |
+          git checkout ${{ matrix.branches }}
+          dapper validate
+
+      - name: Build with Dapper for ${{ matrix.branches }}
+        run: |
+          git stash --all
+          dapper build
+
       - name: Read App Secrets
         uses: rancher-eio/read-vault-secrets@main
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APP_ID ;
             secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATE_KEY
+            
       - name: Create App Token
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -92,21 +98,13 @@ jobs:
           app-id: ${{ env.APP_ID }}
           private-key: ${{ env.PRIVATE_KEY }}
 
-      - name: Validate with Dapper for ${{ matrix.branches }}
-        run: dapper validate
-
-      - name: Build with Dapper for ${{ matrix.branches }}
-        run: |
-          git stash --all
-          dapper build
-
       - name: Push release tag for ${{ matrix.branches }}
         run: |
           # To stash any changes created by dapper CI run
           git stash --all
 
           if ! $(git push --quiet --no-progress origin $RELEASE_BRANCH > /dev/null); then
-              echo "[ERROR] Failed while pushing the branch $RELEASE_BRANCH to rancher repository."
+              echo "[ERROR] Failed while pushing the branch $RELEASE_BRANCH to rancher repository. Skipping the version $RELEASE_BRANCH."
               exit 1
           else
               echo "[INFO] Successfully pushed branch $RELEASE_BRANCH: https://github.com/rancher/ingress-nginx/tree/$RELEASE_BRANCH"
