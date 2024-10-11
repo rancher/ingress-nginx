@@ -74,7 +74,10 @@ jobs:
       with:
         secrets: |
           secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
-          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
     - name: Login to Container Registry with Rancher Secrets
       if: github.repository_owner == 'rancher'
       uses: docker/login-action@v3
@@ -95,7 +98,38 @@ jobs:
         REGISTRY: ${{ github.repository_owner }}
       run: ./scripts/build
 
-    - name: Build And Push Full Nginx Controller
+    - name: Build Binaries
       env:
         REGISTRY: ${{ github.repository_owner }}
       run: ./scripts/package
+
+    - name: Build and push controller image
+      uses: rancher/ecm-distro-tools/actions/publish-image@master
+      with:
+        image: nginx-ingress-controller
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-image
+        public-repo: rancher
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+
+
+    - name: Build and push controller chroot image
+      uses: rancher/ecm-distro-tools/actions/publish-image@master
+      with:
+        image: nginx-ingress-controller-chroot
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-chroot-image
+        public-repo: rancher
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}

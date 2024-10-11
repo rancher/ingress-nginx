@@ -245,17 +245,20 @@ show-version:
 PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
-# Changed the name to match existing rancher published image tags
-.PHONY: release # Build a multi-arch docker image
-release: ensure-buildx clean
+.PHONY: build-binaries
+build-binaries: clean
 	echo "Building binaries..."
 	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) PLATFORM=$(PLATFORM) make build;)
 
-	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
-
+.PHONY: push-image
+push-image: REGISTRY=$(REPO)
+push-image: BUILDX_PLATFORMS=$(TARGET_PLATFORMS)
+push-image: ensure-buildx
 	docker buildx build \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		$(IID_FILE_FLAG) \
 		--no-cache \
-		$(MAC_DOCKER_FLAGS) \
 		--push \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS) \
@@ -265,9 +268,15 @@ release: ensure-buildx clean
 		--build-arg BUILD_ID="$(BUILD_ID)" \
 		-t $(REGISTRY)/nginx-ingress-controller:$(TAG) rootfs
 
+.PHONY: push-chroot-image
+push-chroot-image: REGISTRY=$(REPO)
+push-chroot-image: BUILDX_PLATFORMS=$(TARGET_PLATFORMS)
+push-chroot-image: ensure-buildx
 	docker buildx build \
+		--sbom=true \
+		--attest type=provenance,mode=max \
+		$(IID_FILE_FLAG) \
 		--no-cache \
-		$(MAC_DOCKER_FLAGS) \
 		--push \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS)  \
