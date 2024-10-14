@@ -62,11 +62,28 @@ for tag in $NEW_TAGS; do
     FAIL=0
     # Cherry-pick all commits before the user's commit
     for commit in $cherry_pick_commits; do
-        echo "[INFO] Cherry pick commit: $commit to branch: nginx-${tag}-fix"
-        if ! git cherry-pick "$commit" > /dev/null; then
-            echo "[WARN] Failed during cherry-pick of commit $commit in branch nginx-${tag}-fix. Skipping the version ${tag}."
-            FAIL=1
-            break
+        if [[ $(git log --format=%B -n 1 $commit) == *"go generate"* ]]; then
+            echo "[INFO] This is a go generate commit, not cherry picking."
+            echo "[INFO] Performing 'go generate ./...'"
+            if ! go generate ./... > /dev/null; then
+                echo "[WARN] Failed during go generate in branch release-${tag}. Skipping the version ${tag}."
+                FAIL=1
+                break
+            fi
+            echo "[INFO] Commit go generate changes"
+            git add .
+            if ! $(git commit -m "${cherry_pick_label} go generate" > /dev/null); then
+                echo "[WARN] Failed in commiting go generate in branch release-${tag}. Skipping the version ${tag}."
+                FAIL=1
+                break
+            fi
+        else
+            echo "[INFO] Cherry pick commit: $commit to branch: nginx-${tag}-fix"
+            if ! git cherry-pick "$commit" > /dev/null; then
+                echo "[WARN] Failed during cherry-pick of commit $commit in branch nginx-${tag}-fix. Skipping the version ${tag}."
+                FAIL=1
+                break
+            fi
         fi
     done
 
