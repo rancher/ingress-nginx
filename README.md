@@ -17,6 +17,8 @@ balancer.
 
 See the [Getting Started](https://kubernetes.github.io/ingress-nginx/deploy/) document.
 
+Do not use in multi-tenant Kubernetes production installations. This project assumes that users that can create Ingress objects are administrators of the cluster. See the [FAQ](https://kubernetes.github.io/ingress-nginx/faq/#faq) for more.
+
 ## Troubleshooting
 
 If you encounter issues, review the [troubleshooting docs](docs/troubleshooting.md),
@@ -37,6 +39,7 @@ the versions listed. Ingress-Nginx versions **may** work on older versions, but 
 
 | Supported | Ingress-NGINX version | k8s supported version         | Alpine Version | Nginx Version | Helm Chart Version |
 | :-------: | --------------------- | ----------------------------- | -------------- | ------------- | ------------------ |
+|    🔄     | **v1.11.3**           | 1.30, 1.29, 1.28, 1.27, 1.26  | 3.20.3         | 1.25.5        | 4.11.3             |
 |    🔄     | **v1.11.2**           | 1.30, 1.29, 1.28, 1.27, 1.26  | 3.20.0         | 1.25.5        | 4.11.2             |
 |    🔄     | **v1.11.1**           | 1.30, 1.29, 1.28, 1.27, 1.26  | 3.20.0         | 1.25.5        | 4.11.1             |
 |    🔄     | **v1.11.0**           | 1.30, 1.29, 1.28, 1.27, 1.26  | 3.20.0         | 1.25.5        | 4.11.0             |
