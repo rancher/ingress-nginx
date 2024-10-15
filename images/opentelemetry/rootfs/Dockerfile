@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-FROM alpine:3.20.0 AS base
+FROM alpine:3.20 AS base
 
 RUN mkdir -p /opt/third_party/install
 COPY . /opt/third_party/
@@ -31,7 +31,7 @@ FROM base AS nginx
 ARG NGINX_VERSION=1.25.3
 RUN bash /opt/third_party/build.sh -n ${NGINX_VERSION}
 
-FROM golang:1.22.6-bullseye AS build-init
+FROM golang:1.22.8-bullseye AS build-init
 
 WORKDIR /go/src/app
 COPY . .
