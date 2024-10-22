@@ -103,6 +103,15 @@ jobs:
         REGISTRY: ${{ github.repository_owner }}
       run: ./scripts/package
 
+    - name: Setup tags
+      run: |
+        source ./scripts/version
+        echo "TAG=$TAG" >> $GITHUB_ENV
+        echo "PKG=$PKG" >> $GITHUB_ENV
+        echo "REGISTRY=$REGISTRY" >> $GITHUB_ENV
+        echo "NGINX_TAG=$NGINX_TAG" >> $GITHUB_ENV
+        echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_ENV
+
     - name: Build and push controller image
       uses: rancher/ecm-distro-tools/actions/publish-image@master
       with:
