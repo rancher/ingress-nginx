@@ -6,5 +6,6 @@ cd $(dirname $0)
 ./validate
 ./test
 # if e2e run ./e2e-test
-./build
+./build-base-image
+./build-binary
 ./package

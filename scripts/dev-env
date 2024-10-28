@@ -1,5 +1,5 @@
 #!/bin/bash
-# Use ./scripts/package to build the dev-env image
+# Use ./scripts/build-binary and ./scripts/package to build the dev-env image
 set -e -x
 
 source $(dirname $0)/version

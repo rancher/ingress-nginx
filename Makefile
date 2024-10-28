@@ -245,11 +245,47 @@ show-version:
 PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
-.PHONY: build-binaries
-build-binaries: clean
+.PHONY: release # Build a multi-arch docker image
+release: ensure-buildx clean
 	echo "Building binaries..."
-	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) PLATFORM=$(PLATFORM) make build;)
+	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
+	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
+
+	docker buildx build \
+		--no-cache \
+		$(MAC_DOCKER_FLAGS) \
+		--push \
+		--pull \
+		--progress plain \
+		--platform $(BUILDX_PLATFORMS) \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		-t $(REGISTRY)/controller:$(TAG) rootfs
+
+	docker buildx build \
+		--no-cache \
+		$(MAC_DOCKER_FLAGS) \
+		--push \
+		--pull \
+		--progress plain \
+		--platform $(BUILDX_PLATFORMS)  \
+		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+		--build-arg VERSION="$(TAG)" \
+		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
+		--build-arg BUILD_ID="$(BUILD_ID)" \
+		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
+
+.PHONY: build-docs
+build-docs:
+	pip install -r docs/requirements.txt
+	mkdocs build --config-file mkdocs.yml
+
+# Derived from the release target, but only builds and pushes a single image.
+# Binaries are built separately.
+# Changed the name to match existing rancher published image tags
 .PHONY: push-image
 push-image: REGISTRY=$(REPO)
 push-image: BUILDX_PLATFORMS=$(TARGET_PLATFORMS)
@@ -285,8 +321,3 @@ push-chroot-image: ensure-buildx
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
 		-t $(REGISTRY)/nginx-ingress-controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile-chroot
-
-.PHONY: build-docs
-build-docs:
-	pip install -r docs/requirements.txt
-	mkdocs build --config-file mkdocs.yml

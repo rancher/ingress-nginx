@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e -x
+
+source $(dirname $0)/version
+cd $(dirname $0)/..
+
+# If #GIT_TAG is present, then we build binaries
+if [[ -n "$GIT_TAG" ]] && [ "$GITHUB_ACTIONS" = "true" ]; then
+    make ensure-buildx
+    ARCH=amd64 PLATFORM=amd64 make build
+    ARCH=arm64 PLATFORM=arm64 make build
+else
+    # Only build the images for the current host platform, using regular docker build
+    docker buildx use default
+    make build # goboring hardened binaries
+fi

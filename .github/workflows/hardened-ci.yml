@@ -96,12 +96,12 @@ jobs:
     - name: Build Base Image
       env:
         REGISTRY: ${{ github.repository_owner }}
-      run: ./scripts/build
+      run: ./scripts/build-base-image
 
     - name: Build Binaries
       env:
         REGISTRY: ${{ github.repository_owner }}
-      run: ./scripts/package
+      run: ./scripts/build-binary
 
     - name: Setup tags
       run: |
