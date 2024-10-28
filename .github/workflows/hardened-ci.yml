@@ -57,6 +57,8 @@ jobs:
       id-token: write # needed for the Vault authentication
     if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ github.repository_owner }}
     steps:
     - name: Check out code
       uses: actions/checkout@v4
@@ -94,13 +96,9 @@ jobs:
         password: ${{ secrets.DOCKER_TOKEN }}
 
     - name: Build Base Image
-      env:
-        REGISTRY: ${{ github.repository_owner }}
       run: ./scripts/build-base-image
 
     - name: Build Binaries
-      env:
-        REGISTRY: ${{ github.repository_owner }}
       run: ./scripts/build-binary
 
     - name: Setup tags
@@ -108,17 +106,25 @@ jobs:
         source ./scripts/version
         echo "TAG=$TAG" >> $GITHUB_ENV
         echo "PKG=$PKG" >> $GITHUB_ENV
-        echo "REGISTRY=$REGISTRY" >> $GITHUB_ENV
         echo "NGINX_TAG=$NGINX_TAG" >> $GITHUB_ENV
         echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_ENV
 
+    - name: Setup Docker Credentials
+      if: github.repository_owner != 'rancher'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      run: |
+        echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+        echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
+    
     - name: Build and push controller image
       uses: rancher/ecm-distro-tools/actions/publish-image@master
       with:
         image: nginx-ingress-controller
         tag: ${{ github.event.release.tag_name }}
         make-target: push-image
-        public-repo: rancher
+        public-repo: ${{ env.REGISTRY }}
         public-username: ${{ env.DOCKER_USERNAME }}
         public-password: ${{ env.DOCKER_TOKEN }}
 
@@ -126,7 +132,7 @@ jobs:
         prime-registry: ${{ env.PRIME_REGISTRY }}
         prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
         prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
-
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
 
     - name: Build and push controller chroot image
       uses: rancher/ecm-distro-tools/actions/publish-image@master
@@ -134,7 +140,7 @@ jobs:
         image: nginx-ingress-controller-chroot
         tag: ${{ github.event.release.tag_name }}
         make-target: push-chroot-image
-        public-repo: rancher
+        public-repo: ${{ env.REGISTRY }}
         public-username: ${{ env.DOCKER_USERNAME }}
         public-password: ${{ env.DOCKER_TOKEN }}
 
@@ -142,3 +148,4 @@ jobs:
         prime-registry: ${{ env.PRIME_REGISTRY }}
         prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
         prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
