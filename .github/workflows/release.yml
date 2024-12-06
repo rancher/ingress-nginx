@@ -50,7 +50,7 @@ jobs:
       run: |
         SKIP_BUILDX_HACK=true ./scripts/e2e-test
 
-  release:
+  release-base-image:
     needs: e2e
     permissions:
       contents: read
@@ -95,8 +95,49 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
 
-    - name: Build Base Image
+    - name: Build And Push Base Image
       run: ./scripts/build-base-image
+
+
+  release-controller-image:
+    needs: release-base-image
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ github.repository_owner }}
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
 
     - name: Build Binaries
       run: ./scripts/build-binary
