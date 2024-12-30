@@ -1,0 +1,389 @@
+name: Hardened CI
+on: 
+  push:
+    branches:
+      - hardened-nginx-**
+  pull_request:
+    branches:
+      - hardened-nginx-**
+  release:
+    types:
+      - created
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  BASE_IMAGE_REPO: ${{ github.repository_owner }}/nginx
+
+jobs:
+  unit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # Taken from the upstream ci.yaml action
+    - name: Get go version
+      run: echo "GOLANG_VERSION=$(cat GOLANG_VERSION)" >> $GITHUB_ENV
+
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+        check-latest: true
+
+    - name: Run Unit Tests
+      run: ./scripts/test
+
+  e2e-build:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Build E2E Base Image
+      run: ./scripts/e2e-build
+    
+    - name: Save Docker image
+      run: docker save -o nginx-ingress-e2e.tar $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "rancher/nginx")
+
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v4
+      with:
+        name: nginx-ingress-e2e
+        path: nginx-ingress-e2e.tar
+        retention-days: 1
+
+  e2e:
+    needs: e2e-build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    # Annotations and Settings have many checks, the rest of the focus groups only have 1-5 checks each
+    # So they are combined in larger groups to reduce the number of jobs
+    strategy:
+      fail-fast: true
+      matrix:
+        focus: 
+          - Annotations
+          - Settings
+          - "Admission|Cgroups|Default Backend|Disable Leader|Endpointslices|Flag|TCP"
+          - "Ingress|Lua|Memory Leak|metrics|Security|Service|Shutdown|SSL|Status|TopologyHints"
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Download Docker image
+      uses: actions/download-artifact@v4
+      with:
+        name: nginx-ingress-e2e
+
+    - name: Load Docker image
+      run: docker load -i nginx-ingress-e2e.tar
+    
+    - name: Run E2E Tests with combined focus
+      run: |
+        # Add brackets around each focus area in the OR pattern
+        FOCUS_PATTERN=$(echo "${{ matrix.focus }}" | sed -E 's/([^|]+)/\\[\1\\]/g')
+        
+        FOCUS="$FOCUS_PATTERN" ./scripts/e2e-test
+
+  build-base-image-amd64:
+    needs: e2e
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04
+    env:
+      REGISTRY: ${{ github.repository_owner }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Build and push by digest base image
+      id: build
+      uses: docker/build-push-action@v6
+      with:
+        platforms: linux/amd64
+        outputs: type=image,"name=${{ env.BASE_IMAGE_REPO }}",push-by-digest=true,name-canonical=true,push=true
+        context: ./images/nginx/rootfs
+
+    - name: Export digest
+      run: |
+        mkdir -p ${{ runner.temp }}/digests
+        digest="${{ steps.build.outputs.digest }}"
+        touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+    - name: Upload digest
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-amd64
+        path: ${{ runner.temp }}/digests/*
+        if-no-files-found: error
+        retention-days: 1
+
+  build-base-image-arm64:
+    needs: e2e
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04-arm
+    env:
+      REGISTRY: ${{ github.repository_owner }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Build and push by digest base image
+      id: build
+      uses: docker/build-push-action@v6
+      with:
+        platforms: linux/arm64
+        outputs: type=image,"name=${{ env.BASE_IMAGE_REPO }}",push-by-digest=true,name-canonical=true,push=true
+        context: ./images/nginx/rootfs
+
+    - name: Export digest
+      run: |
+        mkdir -p ${{ runner.temp }}/digests
+        digest="${{ steps.build.outputs.digest }}"
+        touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+    - name: Upload digest
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-arm64
+        path: ${{ runner.temp }}/digests/*
+        if-no-files-found: error
+        retention-days: 1
+
+  merge-publish-base-image:
+    runs-on: ubuntu-latest
+    needs:
+      - build-base-image-amd64
+      - build-base-image-arm64
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # needed for the Vault authentication
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+      
+      - name: "Read Vault secrets"
+        if: github.repository_owner == 'rancher'
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+      
+      - name: Login to DockerHub with Rancher Secrets
+        if: github.repository_owner == 'rancher'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_TOKEN }}
+
+      # For forks, setup DockerHub login with GHA secrets
+      - name: Login to DockerHub with GHA Secrets
+        if: github.repository_owner != 'rancher'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.BASE_IMAGE_REPO}}
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.BASE_IMAGE_REPO }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect ${{ env.BASE_IMAGE_REPO }}:${{ steps.meta.outputs.version }}
+
+  release-controller-image:
+    needs: merge-publish-base-image
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-22.04
+    env:
+      REGISTRY: ${{ github.repository_owner }}
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Binaries
+      run: ./scripts/build-binary
+
+    - name: Setup tags
+      run: |
+        source ./scripts/version
+        echo "TAG=$TAG" >> $GITHUB_ENV
+        echo "PKG=$PKG" >> $GITHUB_ENV
+        echo "NGINX_TAG=$NGINX_TAG" >> $GITHUB_ENV
+        echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_ENV
+
+    - name: Setup Docker Credentials
+      if: github.repository_owner != 'rancher'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      run: |
+        echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+        echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
+    
+    - name: Build and push controller image
+      uses: rancher/ecm-distro-tools/actions/publish-image@master
+      with:
+        image: nginx-ingress-controller
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-image
+        public-repo: ${{ env.REGISTRY }}
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
+
+    - name: Build and push controller chroot image
+      uses: rancher/ecm-distro-tools/actions/publish-image@master
+      with:
+        image: nginx-ingress-controller-chroot
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-chroot-image
+        public-repo: ${{ env.REGISTRY }}
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
