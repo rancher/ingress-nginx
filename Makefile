@@ -250,9 +250,10 @@ PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
 .PHONY: release # Build a multi-arch docker image
-release: builder clean
-	echo "Building binaries..."
-	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
+release: ensure-buildx clean
+# Rancher CI: the build has been done in the build step in the scripts/ci
+#	echo "Building binaries..."
+#	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
 
 	echo "Building and pushing ingress-nginx image...$(BUILDX_PLATFORMS)"
 
@@ -267,17 +268,5 @@ release: builder clean
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
 		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller:$(TAG) rootfs
+		-t $(REGISTRY)/nginx-ingress-controller:$(TAG) rootfs
 
-	docker buildx build \
-		--no-cache \
-		$(MAC_DOCKER_FLAGS) \
-		--push \
-		--pull \
-		--progress plain \
-		--platform $(BUILDX_PLATFORMS)  \
-		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
-		--build-arg VERSION="$(TAG)" \
-		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
-		--build-arg BUILD_ID="$(BUILD_ID)" \
-		-t $(REGISTRY)/controller-chroot:$(TAG) rootfs -f rootfs/Dockerfile.chroot
