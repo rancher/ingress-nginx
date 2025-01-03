@@ -29,3 +29,9 @@ fi
 TAG=${TAG:-$VERSION}
 
 PKG="k8s.io/ingress-nginx"
+
+echo "GIT_COMMIT: $GIT_COMMIT"
+echo "GIT_TAG: $GIT_TAG"
+echo "VERSION: $VERSION"
+echo "TAG: $TAG"
+echo "ARCH: $ARCH"
