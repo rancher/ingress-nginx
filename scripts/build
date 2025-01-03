@@ -14,8 +14,12 @@ declare -a arches=("arm64" "amd64")
 for arch in "${arches[@]}"
 do
 <<<<<<< HEAD
+<<<<<<< HEAD
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 =======
    ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 >>>>>>> a98f9bc1e ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+   ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+>>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 done
