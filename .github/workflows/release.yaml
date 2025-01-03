@@ -1,0 +1,32 @@
+name: CI on Releasing Tag
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    container:
+      image: rancher/dapper:v0.6.0
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    steps:
+      - name: Fix the not-a-git-repository issue
+        run: |
+          apk -U add git
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Load Secrets from Vault
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username | DOCKER_USERNAME ;
+            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password | DOCKER_PASSWORD
+
+      - name: Run CI
+        run: dapper ci
