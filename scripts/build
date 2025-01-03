@@ -13,5 +13,5 @@ mkdir -p bin
 declare -a arches=("arm64" "amd64")
 for arch in "${arches[@]}"
 do
-   ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+   ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 done
