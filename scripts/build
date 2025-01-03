@@ -17,13 +17,23 @@ do
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 =======
+=======
+   ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+   ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
+=======
+>>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
    ARCH=$arch DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 >>>>>>> a98f9bc1e ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 =======
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+<<<<<<< HEAD
 =======
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 =======
@@ -33,4 +43,7 @@ do
 =======
    ARCH="$arch" TAG="$TAG" DOCKER_IN_DOCKER_ENABLED=true USER=0 make build
 >>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+=======
+>>>>>>> 0b62bbe4d ((cherry-pick) add Rancher's workflow files and add FOSSA)
+>>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 done
