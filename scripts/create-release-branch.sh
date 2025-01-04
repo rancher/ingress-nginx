@@ -105,16 +105,15 @@ echo "==========================================================================
 # Print the new branches
 if [ ${#NEW_RELEASE_BRANCHES[@]} -eq 0 ]; then
     echo "[ERROR] No new release branches."
-    exit 1
+    exit 0
 else
     echo "[INFO] New release branches:"
     for branch in "${NEW_RELEASE_BRANCHES[@]}"; do
         echo "- $branch"
-    done
-fi
 
-# Convert NEW_RELEASE_BRANCHES array to JSON string
-echo "NEW_RELEASE_BRANCHES=$(printf '%s\n' "${NEW_RELEASE_BRANCHES[@]}" | awk '{printf "\"%s\",", $0}' | sed 's/,$/]/' | sed 's/^/[/' )" >> $GITHUB_OUTPUT
+    # Convert NEW_RELEASE_BRANCHES array to JSON string
+    echo "NEW_RELEASE_BRANCHES=$(printf '%s\n' "${NEW_RELEASE_BRANCHES[@]}" | awk '{printf "\"%s\",", $0}' | sed 's/,$/]/' | sed 's/^/[/' )" >> $GITHUB_OUTPUT
+fi
 
 # Clean up temporary files
 rm -f "$rancher_tags_file"
