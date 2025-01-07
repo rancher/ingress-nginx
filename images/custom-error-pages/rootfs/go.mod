@@ -1,8 +1,8 @@
 module k8s.io/ingress-nginx/custom-error-pages
 
-go 1.22.8
+go 1.23.4
 
-require github.com/prometheus/client_golang v1.20.4
+require github.com/prometheus/client_golang v1.20.5
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
