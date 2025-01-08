@@ -110,7 +110,7 @@ else
     echo "[INFO] New release branches:"
     for branch in "${NEW_RELEASE_BRANCHES[@]}"; do
         echo "- $branch"
-
+    done
     # Convert NEW_RELEASE_BRANCHES array to JSON string
     echo "NEW_RELEASE_BRANCHES=$(printf '%s\n' "${NEW_RELEASE_BRANCHES[@]}" | awk '{printf "\"%s\",", $0}' | sed 's/,$/]/' | sed 's/^/[/' )" >> $GITHUB_OUTPUT
 fi
