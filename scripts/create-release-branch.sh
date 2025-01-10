@@ -81,16 +81,23 @@ for tag in $NEW_TAGS; do
     # Cherry-pick all commits before the user's commit
     for commit in $cherry_pick_commits; do
         if [[ $(git log --format=%B -n 1 $commit) == *"go generate"* ]]; then
-            echo "[INFO] This is a go generate commit, not cherry picking."
+            echo "[INFO] This is a go generate and validate commit, not cherry picking."
             echo "[INFO] Performing 'go generate ./...'"
             if ! go generate ./... > /dev/null; then
                 echo "[WARN] Failed during go generate in branch nginx-${tag}-fix. Skipping the version ${tag}."
                 FAIL=1
                 break
             fi
-            echo "[INFO] Commit go generate changes"
+            echo "[INFO] Running validation script .script/validate"
+            if ! ./scripts/validate; then
+                echo "[ERROR] Validation failed in branch nginx-${tag}-fix. Skipping version ${tag}."
+                FAIL=1
+                break
+            fi
+            echo "[INFO] Validation successful."
+            echo "[INFO] Commit go generate and validate changes"
             git add .
-            if ! git commit -m "${cherry_pick_label} go generate" > /dev/null; then
+            if ! git commit -m "${cherry_pick_label} go generate and validate changes" > /dev/null; then
                 echo "[WARN] Failed in committing go generate in branch nginx-${tag}-fix. Skipping the version ${tag}."
                 FAIL=1
                 break
