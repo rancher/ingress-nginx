@@ -37,12 +37,25 @@ for tag in $NEW_TAGS; do
     fi
     echo "[INFO] Checkout to a local branch nginx-${tag}-fix from the upstream tag controller-v$tag."
 
-    # delete .github/workflows and commit
+    # Delete .github/workflows files and commit
     echo "[INFO] Deleting .github/workflows files."
-    rm -rf .github/workflows/*
-    git add .github/workflows
-    git commit -m "Delete .github/workflows files"
+    if ! rm -rf .github/workflows/*; then
+        echo "[ERROR] Failed to delete .github/workflows files."
+        exit 1
+    fi
 
+    # Add changes to git staging area
+    if ! git add .github/workflows; then
+        echo "[ERROR] Failed to stage .github/workflows files."
+        exit 1
+    fi
+
+    # Commit the changes
+    if ! git commit -m "Delete .github/workflows files"; then
+        echo "[ERROR] Failed to commit the deletion of .github/workflows files."
+        exit 1
+    fi
+    
     # Extract major and minor version from the tag
     major_minor=$(echo "${tag}" | cut -d '.' -f 1,2)
 
@@ -71,14 +84,14 @@ for tag in $NEW_TAGS; do
             echo "[INFO] This is a go generate commit, not cherry picking."
             echo "[INFO] Performing 'go generate ./...'"
             if ! go generate ./... > /dev/null; then
-                echo "[WARN] Failed during go generate in branch release-${tag}. Skipping the version ${tag}."
+                echo "[WARN] Failed during go generate in branch nginx-${tag}-fix. Skipping the version ${tag}."
                 FAIL=1
                 break
             fi
             echo "[INFO] Commit go generate changes"
             git add .
-            if ! $(git commit -m "${cherry_pick_label} go generate" > /dev/null); then
-                echo "[WARN] Failed in commiting go generate in branch release-${tag}. Skipping the version ${tag}."
+            if ! git commit -m "${cherry_pick_label} go generate" > /dev/null; then
+                echo "[WARN] Failed in committing go generate in branch nginx-${tag}-fix. Skipping the version ${tag}."
                 FAIL=1
                 break
             fi
@@ -93,8 +106,14 @@ for tag in $NEW_TAGS; do
     done
 
     if [[ $FAIL == 0 ]]; then
-        echo "[INFO] Cherry pick completed successfully."
-        NEW_RELEASE_BRANCHES+=( "nginx-${tag}-fix" )
+        echo "[INFO] Cherry pick completed successfully. Pushing branch nginx-${tag}-fix to rancher repository."
+        if ! git push --quiet --no-progress origin "nginx-${tag}-fix" > /dev/null; then
+            echo "[WARN] Failed while pushing the branch nginx-${tag}-fix to rancher repository. Skipping the version ${tag}."
+            continue
+        else
+            NEW_RELEASE_BRANCHES+=( "nginx-${tag}-fix" )
+            echo "[INFO] Successfully pushed branch nginx-${tag}-fix: https://github.com/rancher/ingress-nginx/tree/nginx-${tag}-fix"
+        fi
     else
         git cherry-pick --abort
     fi
