@@ -211,8 +211,8 @@ jobs:
         uses: rancher-eio/read-vault-secrets@main
         with:
           secrets: |
-            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository }}/credentials username | DOCKER_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository }}/credentials password | DOCKER_TOKEN ;
+            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+            secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
       
       - name: Login to DockerHub with Rancher Secrets
         if: github.repository_owner == 'rancher'
