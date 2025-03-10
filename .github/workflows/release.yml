@@ -48,6 +48,9 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
     
+    - name: Get go version
+      run: echo "GOLANG_VERSION=$(cat GOLANG_VERSION)" >> $GITHUB_ENV
+      
     - name: Set up Go
       id: go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
