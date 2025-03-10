@@ -51,7 +51,7 @@ jobs:
     - name: Run E2E Tests
       # Runner user seems to lack permissions to access the kubeconfig file
       run: |
-        SKIP_BUILDX_HACK=true ./scripts/e2e-test
+        ARCH=amd64 SKIP_BUILDX_HACK=true ./scripts/e2e-test
 
   build-base-image-amd64:
     needs: e2e
