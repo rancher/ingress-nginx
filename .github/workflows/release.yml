@@ -43,7 +43,7 @@ jobs:
   e2e:
     permissions:
       contents: read
-    runs-on: ${{ github.repository_owner == "rancher" && 'runs-on,runner=16cpu-linux-x64' || 'ubuntu-latest' }}
+    runs-on: ${{ github.repository_owner == 'rancher' && 'runs-on,runner=16cpu-linux-x64' || 'ubuntu-latest' }}
     steps:
     - name: Check out code
       uses: actions/checkout@v4
