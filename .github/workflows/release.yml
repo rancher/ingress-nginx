@@ -47,11 +47,18 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v4
+    
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+        check-latest: true
 
     - name: Run E2E Tests
       # Runner user seems to lack permissions to access the kubeconfig file
       run: |
-        ARCH=amd64 SKIP_BUILDX_HACK=true ./scripts/e2e-test
+        SKIP_BUILDX_HACK=true ./scripts/e2e-test
 
   build-base-image-amd64:
     needs: e2e
