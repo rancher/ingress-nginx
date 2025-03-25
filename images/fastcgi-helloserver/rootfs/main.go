@@ -16,7 +16,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	}
 
 	key := keys[0]
-	fmt.Fprintf(w, "Hello "+key+"!")
+	fmt.Fprintf(w, "Hello %s!", key)
 }
 
 func main() {
