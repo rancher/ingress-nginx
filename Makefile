@@ -246,7 +246,7 @@ PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
 .PHONY: release # Build a multi-arch docker image
-release: ensure-buildx clean
+release: builder clean
 # Rancher CI: the build has been done in the build step in the scripts/ci
 #	echo "Building binaries..."
 #	$(foreach PLATFORM,$(PLATFORMS), echo -n "$(PLATFORM)..."; ARCH=$(PLATFORM) make build;)
