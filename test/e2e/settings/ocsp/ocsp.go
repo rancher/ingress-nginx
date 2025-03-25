@@ -295,7 +295,7 @@ func ocspserveDeployment(namespace string) (*appsv1.Deployment, *corev1.Service)
 						Containers: []corev1.Container{
 							{
 								Name:  name,
-								Image: "registry.k8s.io/ingress-nginx/cfssl:v1.1.0@sha256:31a195d7c3dc801575ca46919ff2b3f01afce54a744ab22ee83469f92a6e0965",
+								Image: "registry.k8s.io/ingress-nginx/cfssl:v1.1.2@sha256:fd43e7671a6c0338c0f3fe60866d58baef6baa7c13254d788b7180d215b4d933",
 								Command: []string{
 									"/bin/bash",
 									"-c",
