@@ -59,6 +59,7 @@ RUN zypper install -y --allow-vendor-change \
     make \
     tar \
     gzip \
+    procps \
     catatonit
 
 RUN ldDirs=" \
