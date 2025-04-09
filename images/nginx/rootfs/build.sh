@@ -294,6 +294,7 @@ ln -s "$LUAJIT_INC" /usr/local/include/lua
 cd "$BUILD_PATH/opentelemetry-cpp"
 export CXXFLAGS="-DBENCHMARK_HAS_NO_INLINE_ASSEMBLY"
 export CC="gcc-12"
+export CXX="g++-12"
 cmake -B build -G Ninja -Wno-dev \
         -DOTELCPP_PROTO_PATH="${BUILD_PATH}/opentelemetry-proto/" \
         -DCMAKE_INSTALL_PREFIX=/usr \
