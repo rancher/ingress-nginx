@@ -11,6 +11,7 @@ fi
 
 # fetch tag information
 git fetch
+git fetch --tags
 
 GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse --short HEAD)}
 GIT_TAG=$(git tag -l --contains HEAD | head -n 1)
