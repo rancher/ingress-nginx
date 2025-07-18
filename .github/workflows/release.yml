@@ -227,7 +227,7 @@ jobs:
         name: digests-arm64
         path: ${{ runner.temp }}/digests/*
         if-no-files-found: error
-        retention-days: 1
+        retention-days: 2
 
   merge-publish-base-image:
     runs-on: ubuntu-latest
@@ -290,13 +290,63 @@ jobs:
       - name: Inspect image
         run: docker buildx imagetools inspect ${{ env.BASE_IMAGE_REPO }}:${{ steps.meta.outputs.version }}
 
+  build-binary-amd64:
+    needs: e2e
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Binary
+        run: |
+          ARCH=amd64 ./scripts/build-binary
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-amd64
+          path: rootfs/bin/amd64
+          retention-days: 2
+
+  build-binary-arm64:
+    needs: e2e
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Binary
+        run: |
+          ARCH=arm64 ./scripts/build-binary
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-arm64
+          path: rootfs/bin/arm64
+          retention-days: 2
+  
   release-controller-image:
-    needs: merge-publish-base-image
+    needs: [merge-publish-base-image, build-binary-amd64, build-binary-arm64]
     permissions:
       contents: read
       id-token: write # needed for the Vault authentication
     if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       REGISTRY: ${{ github.repository_owner }}
     steps:
@@ -304,6 +354,18 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
 
+    - name: Download Binaries
+      uses: actions/download-artifact@v4
+      with:
+        pattern: binaries-*
+        path: ./bin
+
+    - name: Setup binaries in correct location
+      run: |
+        mkdir -p ./rootfs/bin
+        mv ./bin/binaries-amd64 ./rootfs/bin/amd64
+        mv ./bin/binaries-arm64 ./rootfs/bin/arm64
+    
     # Only pull vault secrets if the repository is rancher
     - name: "Read secrets"
       if: github.repository_owner == 'rancher'
@@ -335,9 +397,6 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
-    - name: Build Binaries
-      run: ./scripts/build-binary
 
     - name: Setup tags
       run: |

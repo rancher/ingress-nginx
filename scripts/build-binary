@@ -6,8 +6,13 @@ cd $(dirname $0)/..
 
 # If #GIT_TAG is present, then we build binaries
 if [[ -n "$GIT_TAG" ]] && [ "$GITHUB_ACTIONS" = "true" ]; then
-    ARCH=amd64 PLATFORM=amd64 make build
-    ARCH=arm64 PLATFORM=arm64 make build
+    if [[ -n "$ARCH" ]]; then
+        ARCH=$ARCH PLATFORM=$ARCH make build
+    else
+        # Build for all architectures
+        ARCH=amd64 PLATFORM=amd64 make build
+        ARCH=arm64 PLATFORM=arm64 make build
+    fi
 else
     # Only build the images for the current host platform, using regular docker build
     make build BUILDER=default # goboring hardened binaries
