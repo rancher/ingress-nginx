@@ -30,7 +30,7 @@ import (
 
 const sslRedirectValue = "false"
 
-var _ = framework.DescribeAnnotation("affinitymode", func() {
+var _ = framework.DescribeAnnotationB("affinitymode", func() {
 	f := framework.NewDefaultFramework("affinity")
 
 	ginkgo.It("Balanced affinity mode should balance", func() {
