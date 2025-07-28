@@ -36,7 +36,7 @@ const (
 		SecRule REQUEST_HEADERS:User-Agent \"block-ua\" \"log,deny,id:107,status:403,msg:\'UA blocked\'\"`
 )
 
-var _ = framework.DescribeAnnotation("modsecurity owasp", func() {
+var _ = framework.DescribeAnnotationB("modsecurity owasp", func() {
 	f := framework.NewDefaultFramework("modsecuritylocation")
 
 	ginkgo.BeforeEach(func() {
