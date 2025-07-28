@@ -28,7 +28,7 @@ import (
 
 const authTLSFooHost = "authtls.foo.com"
 
-var _ = framework.DescribeAnnotation("auth-tls-*", func() {
+var _ = framework.DescribeAnnotationB("auth-tls-*", func() {
 	f := framework.NewDefaultFramework("authtls")
 
 	ginkgo.BeforeEach(func() {

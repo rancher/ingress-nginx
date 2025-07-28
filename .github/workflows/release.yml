@@ -72,8 +72,8 @@ jobs:
       fail-fast: true
       matrix:
         focus: 
-          - Annotations
-          - Settings
+          - Annotations_B
+          - "Annotations_A|Settings"
           - "Admission|Cgroups|Default Backend|Disable Leader|Endpointslices|Flag|TCP"
           - "Ingress|Lua|Memory Leak|metrics|Security|Service|Shutdown|SSL|Status|TopologyHints"
     steps:

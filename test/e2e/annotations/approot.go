@@ -25,7 +25,7 @@ import (
 	"k8s.io/ingress-nginx/test/e2e/framework"
 )
 
-var _ = framework.DescribeAnnotation("app-root", func() {
+var _ = framework.DescribeAnnotationB("app-root", func() {
 	f := framework.NewDefaultFramework("approot")
 
 	ginkgo.BeforeEach(func() {
