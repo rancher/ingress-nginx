@@ -28,7 +28,7 @@ import (
 
 const fooHost = "foo"
 
-var _ = framework.DescribeAnnotation("server-alias", func() {
+var _ = framework.DescribeAnnotationB("server-alias", func() {
 	f := framework.NewDefaultFramework("alias")
 
 	ginkgo.BeforeEach(func() {
