@@ -42,7 +42,7 @@ const (
 	authURL       = "http://foo.bar.baz:5000/path"
 )
 
-var _ = framework.DescribeAnnotation("auth-*", func() {
+var _ = framework.DescribeAnnotationB("auth-*", func() {
 	f := framework.NewDefaultFramework("auth", framework.WithHTTPBunEnabled())
 
 	ginkgo.BeforeEach(func() {
