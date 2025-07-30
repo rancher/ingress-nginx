@@ -57,10 +57,13 @@ RUN zypper install -y --allow-vendor-change \
     libicu73_2 \
     liblua5_4-5 \
     make \
-    tar \
-    gzip \
     procps \
     catatonit
+
+# Remove zypper and other unnecessary packages
+RUN zypper -n clean -a && rm -rf /tmp/* /var/tmp/* /usr/share/doc/packages && \
+    rpm -e libsolv-tools-base zypper libzypp libaugeas0 libfa1 container-suseconnect \
+    libyaml-cpp0_6 boost-license1_66_0 libboost_system1_66_0 libboost_thread1_66_0
 
 RUN ldDirs=" \
       /usr/local/lib \
