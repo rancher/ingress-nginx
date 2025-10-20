@@ -148,15 +148,14 @@ golint-check:
 
 .PHONY: test
 test:  ## Run go unit tests.
-	@build/run-in-docker.sh \
-		PKG=$(PKG) \
-		MAC_OS=$(MAC_OS) \
-		ARCH=$(ARCH) \
-		COMMIT_SHA=$(COMMIT_SHA) \
-		REPO_INFO=$(REPO_INFO) \
-		TAG=$(TAG) \
-		GOFLAGS="-buildvcs=false" \
-		test/test.sh
+	PKG=$(PKG) \
+	MAC_OS=$(MAC_OS) \
+	ARCH=$(ARCH) \
+	COMMIT_SHA=$(COMMIT_SHA) \
+	REPO_INFO=$(REPO_INFO) \
+	TAG=$(TAG) \
+	GOFLAGS="-buildvcs=false" \
+	test/test.sh
 
 .PHONY: helm-test
 helm-test: ## Run helm unit tests.
@@ -182,8 +181,6 @@ kind-e2e-chart-tests: ## Run helm chart e2e tests
 
 .PHONY: e2e-test-binary
 e2e-test-binary:  ## Build binary for e2e tests.
-	@build/run-in-docker.sh \
-		MAC_OS=$(MAC_OS) \
 		ginkgo build ./test/e2e
 
 .PHONY: print-e2e-suite
