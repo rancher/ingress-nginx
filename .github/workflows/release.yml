@@ -51,6 +51,9 @@ jobs:
     - name: Build E2E Base Image
       run: ./scripts/e2e-build
     
+    - name: Validate that all modules have required libraries
+      run: ./scripts/validate-modules
+      
     - name: Save Docker image
       run: docker save -o nginx-ingress-e2e-base.tar $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "rancher/nginx")
 
