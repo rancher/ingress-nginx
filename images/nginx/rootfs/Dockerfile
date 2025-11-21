@@ -32,6 +32,7 @@ ENV LUA_CPATH="/usr/local/lib/lua/?/?.so;/usr/local/lib/lua/?.so;;"
 
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /usr/lib64/libopentelemetry* /usr/lib64/
+COPY --from=builder /usr/lib64/libbrotli* /usr/lib64/
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
 
