@@ -57,6 +57,7 @@ RUN zypper install -y --allow-vendor-change \
     libpcre1 \
     libicu73_2 \
     liblua5_4-5 \
+    libxslt-tools \
     procps \
     catatonit
 
