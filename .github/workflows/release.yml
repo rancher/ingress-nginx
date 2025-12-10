@@ -36,6 +36,9 @@ jobs:
       with:
         go-version: ${{ env.GOLANG_VERSION }}
         check-latest: true
+    
+    - name: Build Test Runner Image
+      run: make -C images/test-runner load
 
     - name: Run Unit Tests
       run: ./scripts/test
@@ -71,6 +74,9 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v6
+
+    - name: Build E2E Test Runner Image
+      run: make -C images/test-runner load
 
     - name: Build E2E Test Image
       run: make -C test/e2e-image image
