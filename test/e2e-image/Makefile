@@ -1,6 +1,7 @@
 
 DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-E2E_BASE_IMAGE ?= "registry.k8s.io/ingress-nginx/e2e-test-runner:v2.2.9@sha256:6eda6a8d17ff65c5af647abb0714b882047b77d18161712d77daf5f610fd4020"
+E2E_IMAGE_VERSION:=$(shell cat $(DIR)/../../images/test-runner/TAG)
+E2E_BASE_IMAGE ?= "rancher/e2e-test-runner:$(E2E_IMAGE_VERSION)"
 
 image:
 	echo "..entered Makefile in /test/e2e-image"
