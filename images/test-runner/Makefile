@@ -13,8 +13,8 @@
 # limitations under the License.
 
 BUILDER ?= ingress-nginx
-PLATFORMS ?= linux/amd64,linux/arm64
-REGISTRY ?= us-central1-docker.pkg.dev/k8s-staging-images/ingress-nginx
+PLATFORMS ?= linux/amd64
+REGISTRY ?= rancher
 IMAGE ?= $(REGISTRY)/e2e-test-runner
 TAG ?= $(shell cat TAG)
 
@@ -49,6 +49,14 @@ build: builder
 		rootfs \
 		--tag $(IMAGE):$(TAG) \
 		$(OUTPUT)
+
+.PHONY: load
+load: OUTPUT = --load
+load: build
+
+.PHONY: tarball
+tarball: OUTPUT = --output type=tar,dest=test-runner.tar
+tarball: build
 
 .PHONY: push
 push: OUTPUT = --push
