@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # With BCI as base image, with the SLES 15 SP7 tag, which has a newer version of glibc
-FROM registry.suse.com/bci/bci-base:15.7 AS builder
+FROM registry.suse.com/bci/bci-base:16.0 AS builder
  
-RUN zypper addrepo -p 105 http://download.opensuse.org/distribution/leap/15.6/repo/oss/ download.opensuse.org-oss && \
+RUN zypper addrepo -p 105 http://download.opensuse.org/distribution/leap/16.0/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
 
 COPY patches /patches
@@ -23,7 +23,7 @@ COPY --chmod=0755 build.sh /
 RUN /build.sh
 
 # Use a multi-stage build
-FROM registry.suse.com/bci/bci-base:15.7
+FROM registry.suse.com/bci/bci-base:16.0
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -39,7 +39,7 @@ COPY --from=builder /etc/nginx /etc/nginx
 RUN ln -s /usr/lib64/liblua5.3.so.5.3.0 /usr/local/lib/liblua-5.3.so
 
 RUN zypper addrepo \
-    -p 105 http://download.opensuse.org/distribution/leap/15.6/repo/oss/ download.opensuse.org-oss && \
+    -p 105 http://download.opensuse.org/distribution/leap/16.0/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
 RUN zypper install -y --allow-vendor-change \
     liblmdb-0_9_30 \
@@ -47,7 +47,7 @@ RUN zypper install -y --allow-vendor-change \
     libmaxminddb0 \
     libcap-progs \    
     crypto-policies-scripts \
-    libgrpc++1 \
+    libgrpc++1_59 \
     libatomic1 \
     grpc-devel \
     wget \
@@ -55,16 +55,11 @@ RUN zypper install -y --allow-vendor-change \
     libyajl2 \
     openssl-3 \
     libpcre1 \
-    libicu73_2 \
+    libicu77 \
     liblua5_4-5 \
     libxslt-tools \
     procps \
     catatonit
-
-# Remove zypper and other unnecessary packages
-RUN zypper -n clean -a && rm -rf /tmp/* /var/tmp/* /usr/share/doc/packages && \
-    rpm -e libsolv-tools-base zypper libzypp libaugeas0 libfa1 container-suseconnect \
-    libyaml-cpp0_6 boost-license1_66_0 libboost_system1_66_0 libboost_thread1_66_0
 
 RUN ldDirs=" \
       /usr/local/lib \
