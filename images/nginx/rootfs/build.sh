@@ -136,7 +136,7 @@ get_src()
 # Dependencies from "ninja" and below are OTEL dependencies
 zypper install -y \
   bash \
-  gcc12 \
+  gcc \
   clang \
   make \
   automake \
@@ -160,13 +160,14 @@ zypper install -y \
   wget \
   libcurl-devel \
   protobuf-devel \
-  git pkgconf gcc12-c++ flex bison doxygen libyajl-devel lmdb-devel libtool autoconf libxml2-2 libxml2-devel \
+  git pkgconf gcc15-c++ flex bison doxygen libyajl-devel lmdb-devel libtool autoconf libxml2-2 libxml2-devel \
   python3 \
   libmaxminddb-devel \
   bc \
   unzip \
   dos2unix \
-  libyaml-cpp0_6 \
+  which \
+  libyaml-cpp0_8 \
   ninja \
   gtest \
   git \
@@ -290,8 +291,8 @@ ln -s "$LUAJIT_INC" /usr/local/include/lua
 
 cd "$BUILD_PATH/opentelemetry-cpp"
 export CXXFLAGS="-DBENCHMARK_HAS_NO_INLINE_ASSEMBLY"
-export CC="gcc-12"
-export CXX="g++-12"
+export CC="gcc"
+export CXX="g++-15"
 cmake -B build -G Ninja -Wno-dev \
         -DOTELCPP_PROTO_PATH="${BUILD_PATH}/opentelemetry-proto/" \
         -DCMAKE_INSTALL_PREFIX=/usr \
@@ -301,6 +302,7 @@ cmake -B build -G Ninja -Wno-dev \
         -DCMAKE_BUILD_TYPE=None \
         -DWITH_ABSEIL=ON \
         -DWITH_STL=ON \
+        -DCMAKE_CXX_STANDARD=23 \
         -DWITH_EXAMPLES=OFF \
         -DWITH_ZPAGES=OFF \
         -DWITH_OTLP_GRPC=ON \
