@@ -40,8 +40,8 @@ function cleanup {
   rm -rf "${INGRESS_VOLUME}"
 }
 trap cleanup EXIT
-
-E2E_IMAGE=${E2E_IMAGE:-registry.k8s.io/ingress-nginx/e2e-test-runner:v2.2.9@sha256:6eda6a8d17ff65c5af647abb0714b882047b77d18161712d77daf5f610fd4020}
+E2E_RUNNER_VERSION=$(cat ./images/test-runner/TAG)
+E2E_IMAGE=${E2E_IMAGE:-rancher/e2e-test-runner:$E2E_RUNNER_VERSION}
 
 if [[ "$RUNTIME" == podman ]]; then
   # Podman does not support both tag and digest
