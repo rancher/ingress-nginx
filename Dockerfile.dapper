@@ -12,6 +12,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0b62bbe4d ((cherry-pick) add Rancher's workflow files and add FOSSA)
 <<<<<<< HEAD
 >>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
@@ -21,7 +22,17 @@
 =======
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
 FROM docker:19.03.9
 ARG DAPPER_HOST_ARCH
 ARG STEP=ci
@@ -59,6 +70,7 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 =======
 =======
@@ -79,6 +91,8 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
 =======
 =======
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 <<<<<<< HEAD
 >>>>>>> 0b62bbe4d ((cherry-pick) add Rancher's workflow files and add FOSSA)
@@ -98,8 +112,16 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64 \
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+=======
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
     DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
 RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 
@@ -136,6 +158,7 @@ RUN wget -O - https://golang.org/dl/go1.26.1.linux-${!GOLANG_ARCH}.tar.gz | tar 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 RUN wget -O - https://golang.org/dl/go1.25.6.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
     curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
 =======
@@ -180,8 +203,18 @@ RUN wget -O - https://dl.google.com/go/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | t
     go get github.com/rancher/trash && go get golang.org/x/lint/golint && go get -u github.com/jteeuwen/go-bindata/...
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+=======
+=======
+RUN wget -O - https://golang.org/dl/go1.21.5.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+    curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
 COPY --from=0 /usr/local/bin/docker /usr/bin/docker
 RUN mkdir -p /.docker/cli-plugins
 COPY --from=0 /.docker/cli-plugins/docker-buildx /.docker/cli-plugins/docker-buildx
@@ -204,6 +237,7 @@ ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
 =======
 >>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
@@ -235,8 +269,17 @@ ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
 ENV DAPPER_ENV CROSS TAG
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+=======
+=======
+ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
 ENV DAPPER_RUN_ARGS="--net host"
 ENV TRASH_CACHE ${DAPPER_SOURCE}/.trash-cache
 ENV HOME ${DAPPER_SOURCE}
@@ -249,12 +292,14 @@ RUN mkdir -p /etc/nginx/geoip /etc/ingress-controller/geoip \
     && chown -R 101:101 /etc/nginx/geoip /etc/ingress-controller/geoip
 WORKDIR ${DAPPER_SOURCE}
 ENTRYPOINT ["./scripts/entry"]
-<<<<<<< HEAD
 CMD [${STEP}]
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
 =======
 <<<<<<< HEAD
 =======
@@ -289,5 +334,13 @@ CMD ["ci"]
 CMD ["ci"]
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> 979f2b269 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+<<<<<<< HEAD
 >>>>>>> e5268d711 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+=======
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+>>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+>>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
