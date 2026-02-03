@@ -1,8 +1,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
 FROM docker:19.03.9
 ARG DAPPER_HOST_ARCH
 ARG STEP=ci
@@ -32,6 +35,7 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
     DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-arm64 \
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64 \
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 =======
 =======
@@ -45,6 +49,8 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64 \
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
     DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
 RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 
@@ -61,6 +67,7 @@ RUN apt-get update && \
     rm -f /bin/sh && ln -s /bin/bash /bin/sh
 ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
     GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -82,6 +89,10 @@ RUN wget -O - https://dl.google.com/go/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | t
     go get github.com/rancher/trash && go get golang.org/x/lint/golint && go get -u github.com/jteeuwen/go-bindata/...
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+RUN wget -O - https://golang.org/dl/go1.21.5.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+    curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
 COPY --from=0 /usr/local/bin/docker /usr/bin/docker
 RUN mkdir -p /.docker/cli-plugins
 COPY --from=0 /.docker/cli-plugins/docker-buildx /.docker/cli-plugins/docker-buildx
@@ -91,6 +102,7 @@ RUN docker buildx install
 ENV DAPPER_SOURCE /go/src/k8s.io/ingress-nginx/
 ENV DAPPER_OUTPUT ./bin ./dist
 ENV DAPPER_DOCKER_SOCKET true
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -107,6 +119,9 @@ ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
 ENV DAPPER_ENV CROSS TAG
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+ENV DAPPER_ENV CROSS TAG DOCKER_PASSWORD DOCKER_USERNAME
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
 ENV DAPPER_RUN_ARGS="--net host"
 ENV TRASH_CACHE ${DAPPER_SOURCE}/.trash-cache
 ENV HOME ${DAPPER_SOURCE}
@@ -116,8 +131,8 @@ RUN mkdir -p /etc/nginx/geoip /etc/ingress-controller/geoip \
     && chown -R 101:101 /etc/nginx/geoip /etc/ingress-controller/geoip
 WORKDIR ${DAPPER_SOURCE}
 ENTRYPOINT ["./scripts/entry"]
-<<<<<<< HEAD
 CMD [${STEP}]
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 RUN mkdir -p /etc/nginx/geoip
@@ -133,3 +148,5 @@ CMD [${STEP}]
 CMD ["ci"]
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)

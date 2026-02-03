@@ -10,6 +10,7 @@ cd $(dirname $0)/..
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -29,3 +30,8 @@ REGISTRY=${REPO} PLATFORMS="arm64 amd64" BUILDX_PLATFORMS="linux/amd64,linux/arm
 =======
 >>>>>>> 22cd243f8 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+REGISTRY=${REPO} PLATFORMS="arm64 amd64" BUILDX_PLATFORMS="linux/amd64,linux/arm64" TAG=${TAG} DOCKER_IN_DOCKER_ENABLED=true USER=0 make release
+>>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
