@@ -5,8 +5,7 @@ cd $(dirname $0)/..
 
 echo Running validation
 
-PACKAGES="$(go list ./... | grep -v /vendor/)"
-
+PACKAGES="$(go list ./... | grep -v /vendor/ | grep -v magefiles)"
 echo Running: go vet
 go vet -mod=readonly ${PACKAGES}
 

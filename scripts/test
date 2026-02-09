@@ -10,6 +10,5 @@ if [ "$(go env GOHOSTOS)" = "darwin" ]; then
   FIND_COMMAND="find ."
 fi
 
-PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack)')"
-
+PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack|magefiles)')"
 go test -v -p 1 -tags "cgo" -cover ${PACKAGES}
