@@ -71,6 +71,7 @@ ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLAN
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 RUN wget -O - https://golang.org/dl/go1.25.6.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
     curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
 =======
@@ -79,6 +80,9 @@ RUN wget -O - https://dl.google.com/go/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | t
 >>>>>>> a98f9bc1e ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 =======
 RUN wget -O - https://golang.org/dl/go1.21.5.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+=======
+RUN wget -O - https://golang.org/dl/go1.25.6.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+>>>>>>> bb9a3dea7 ([nginx-1.14.x-fix] fixes)
     curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
 >>>>>>> 7c3a753d9 ((cherry-pick) add Rancher's workflow files and add FOSSA)
 =======
@@ -127,6 +131,9 @@ ENV TRASH_CACHE ${DAPPER_SOURCE}/.trash-cache
 ENV HOME ${DAPPER_SOURCE}
 ENV GIT_IN_DAPPER true
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bb9a3dea7 ([nginx-1.14.x-fix] fixes)
 RUN mkdir -p /etc/nginx/geoip /etc/ingress-controller/geoip \
     && chown -R 101:101 /etc/nginx/geoip /etc/ingress-controller/geoip
 WORKDIR ${DAPPER_SOURCE}

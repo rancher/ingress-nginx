@@ -12,6 +12,7 @@ fi
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack|magefiles)')"
 =======
 PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack)')"
@@ -21,4 +22,7 @@ PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep 
 PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack)')"
 
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
+=======
+PACKAGES="$($FIND_COMMAND -name '*.go' | xargs -I{} dirname {} | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin|docs|test|controller/store|images|examples|hack|magefiles)')"
+>>>>>>> bb9a3dea7 ([nginx-1.14.x-fix] fixes)
 go test -v -p 1 -tags "cgo" -cover ${PACKAGES}
