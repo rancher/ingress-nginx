@@ -43,11 +43,17 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
     DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-arm64 \
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-amd64 \
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 1e940af19 ((cherry-pick) add Rancher's workflow files and add FOSSA)
+=======
+>>>>>>> ca1f9d8ea (changes to makefile and dockerfile)
+=======
+>>>>>>> 26e1b9241 (changes to makefile and dockerfile)
 FROM docker:19.03.8
 =======
 FROM docker:19.03.9
@@ -120,8 +126,16 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
 =======
 =======
 >>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+<<<<<<< HEAD
 >>>>>>> fc5b2a779 ((cherry-pick) go generate and validate changes)
+<<<<<<< HEAD
 >>>>>>> 3b008b0e1 ((cherry-pick) go generate and validate changes)
+=======
+=======
+=======
+>>>>>>> f83c6b2df (changes to makefile and dockerfile)
+>>>>>>> ca1f9d8ea (changes to makefile and dockerfile)
+>>>>>>> 26e1b9241 (changes to makefile and dockerfile)
     DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
 RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 
