@@ -15,6 +15,7 @@ RUN apk update && apk upgrade && apk add bash && ln -sf /bin/bash /bin/sh # use 
 ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-arm-v7 \
     DOCKER_BUILDX_URL_arm64=https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-arm64 \
     DOCKER_BUILDX_URL_amd64=https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-amd64 \
+<<<<<<< HEAD
 =======
 FROM docker:19.03.8
 =======
@@ -51,6 +52,8 @@ ENV DOCKER_BUILDX_URL_arm=https://github.com/docker/buildx/releases/download/v0.
 >>>>>>> fa181aa48 ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
 =======
 >>>>>>> 00a097d85 ((cherry-pick) go generate and validate changes)
+=======
+>>>>>>> f83c6b2df (changes to makefile and dockerfile)
     DOCKER_BUILDX_URL=DOCKER_BUILDX_URL_${ARCH}
 RUN wget -O - ${!DOCKER_BUILDX_URL} > /.docker/cli-plugins/docker-buildx && chmod +x /.docker/cli-plugins/docker-buildx
 
