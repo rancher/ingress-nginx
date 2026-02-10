@@ -14,9 +14,14 @@
 
 NAME ?=
 
-BUILDER ?= ingress-nginx
 PLATFORMS ?= linux/amd64,linux/arm64
-REGISTRY ?= us-central1-docker.pkg.dev/k8s-staging-images/ingress-nginx
+# External Rancher tooling uses REPO, so prioritize that over REGISTRY if set
+REPO ?=
+ifneq ($(strip $(REPO)),)
+REGISTRY := $(REPO)
+else ifeq ($(strip $(REGISTRY)),)
+REGISTRY := rancher
+endif
 IMAGE ?= $(REGISTRY)/$(NAME)
 TAG ?= $(shell cat $(NAME)/TAG)
 
@@ -25,15 +30,10 @@ BASE_IMAGE ?= $(shell cat $(DIR)/../NGINX_BASE)
 GOLANG_VERSION ?= $(shell cat $(DIR)/../GOLANG_VERSION)
 EXTRAARGS ?= $(shell cat $(NAME)/EXTRAARGS)
 
-.PHONY: builder
-builder:
-	docker buildx create --name $(BUILDER) --bootstrap || :
-	docker buildx inspect $(BUILDER)
-
 .PHONY: build
-build: builder
+build:
 	docker buildx build \
-		--builder $(BUILDER) \
+		${IID_FILE_FLAG} \
 		--platform $(PLATFORMS) \
 		--label org.opencontainers.image.description="Ingress NGINX $(NAME)" \
 		--label org.opencontainers.image.source="https://github.com/kubernetes/ingress-nginx" \
@@ -49,6 +49,10 @@ build: builder
 .PHONY: push
 push: OUTPUT = --push
 push: build
+
+.PHONY: load
+load: OUTPUT = --load
+load: build
 
 .PHONY: test
 test:
