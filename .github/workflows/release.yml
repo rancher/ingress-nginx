@@ -402,6 +402,16 @@ jobs:
         mv ./bin/binaries-arm64 ./rootfs/bin/arm64
         chmod +x ./rootfs/bin/amd64/* ./rootfs/bin/arm64/*
     
+    # if the release is suffixed with -primeXX, do not publish to DockerHub
+    - name: Check release suffix
+      id: release_suffix
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == *"-prime"* ]]; then
+          echo "RELEASE_SUFFIX=prime" >> $GITHUB_ENV
+        else
+          echo "RELEASE_SUFFIX=community" >> $GITHUB_ENV
+        fi
+
     # Only pull vault secrets if the repository is rancher
     - name: "Read secrets"
       if: github.repository_owner == 'rancher'
@@ -413,8 +423,9 @@ jobs:
           secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
           secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
           secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    
     - name: Login to Container Registry with Rancher Secrets
-      if: github.repository_owner == 'rancher'
+      if: github.repository_owner == 'rancher' && env.RELEASE_SUFFIX == 'community'
       uses: docker/login-action@v3
       with:
         username: ${{ env.DOCKER_USERNAME }}
@@ -460,6 +471,7 @@ jobs:
         public-repo: ${{ env.REGISTRY }}
         public-username: ${{ env.DOCKER_USERNAME }}
         public-password: ${{ env.DOCKER_TOKEN }}
+        push-to-public: ${{ github.repository_owner != 'rancher' || env.RELEASE_SUFFIX == 'community' }}
 
         prime-repo: rancher
         prime-registry: ${{ env.PRIME_REGISTRY }}
@@ -476,6 +488,7 @@ jobs:
         public-repo: ${{ env.REGISTRY }}
         public-username: ${{ env.DOCKER_USERNAME }}
         public-password: ${{ env.DOCKER_TOKEN }}
+        push-to-public: ${{ github.repository_owner != 'rancher' || env.RELEASE_SUFFIX == 'community' }}
 
         prime-repo: rancher
         prime-registry: ${{ env.PRIME_REGISTRY }}
