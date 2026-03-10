@@ -97,16 +97,14 @@ jobs:
       id-token: write # needed for the Vault authentication
 
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
     steps:
     - name: Check out code
       uses: actions/checkout@v6
 
-    # This is a roundabout OP, since the Makefile defaults to this value,
-    # but the publish-image action requires a tag, that it then passses to the Makefile
     - name: Set Tag
       run: |
-        KWC_TAG=$(cat ./images/kube-webhook-certgen/TAG)
-        echo "KWC_TAG=$KWC_TAG" >> $GITHUB_ENV
+        echo "KWC_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
 
     # Only pull vault secrets if the repository is rancher
     - name: "Read secrets"
@@ -182,10 +180,12 @@ jobs:
     - name: Build and push kube-webhook-certgen image
       if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
       uses: rancher/ecm-distro-tools/actions/publish-image@9cc9d787c12b5ed1acdeb504e4ff59511ffd39c9 # v0.62.0
+      env:
+        NAME: kube-webhook-certgen
       with:
         image: kube-webhook-certgen
         tag: ${{ env.KWC_TAG }}
-        make-target: push -C ./images/ NAME=kube-webhook-certgen
+        make-target: push -C ./images/
         public-repo: ${{ github.repository_owner }}
         public-username: ${{ env.DOCKER_USERNAME }}
         public-password: ${{ env.DOCKER_TOKEN }}
@@ -198,7 +198,7 @@ jobs:
         push-to-prime: ${{ github.repository_owner == 'rancher' && steps.prime_certgen_exists.outputs.prime_exists != 'true' }}
 
   e2e:
-    needs: [e2e-build-base, e2e-build-ctr, build-certgen]
+    needs: [e2e-build-base, e2e-build-ctr]
     permissions:
       contents: read
     runs-on: ubuntu-latest
