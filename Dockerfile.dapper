@@ -75,7 +75,11 @@ ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLAN
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 RUN wget -O - https://golang.org/dl/go1.25.6.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+=======
+RUN wget -O - https://golang.org/dl/go1.26.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+>>>>>>> df950ebc1 (bumped go version in dockerfile)
     curl -sL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.41.0
 =======
 RUN wget -O - https://dl.google.com/go/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
