@@ -35,7 +35,7 @@ build: builder
 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg ETCD_VERSION=3.5.13-0 \
-		--build-arg K8S_RELEASE=v1.35.0 \
+		--build-arg K8S_RELEASE=v1.35.2 \
 		--build-arg RESTY_CLI_VERSION=0.27 \
 		--build-arg RESTY_CLI_SHA=e5f4f3128af49ba5c4d039d0554e5ae91bbe05866f60eccfa96d3653274bff90 \
 		--build-arg LUAROCKS_VERSION=v3.12.2 \
@@ -43,8 +43,8 @@ build: builder
 		--build-arg CHART_TESTING_VERSION=3.8.0 \
 		--build-arg YAML_LINT_VERSION=1.33.0 \
 		--build-arg YAMALE_VERSION=4.0.4 \
-		--build-arg HELM_VERSION=4.1.0 \
-		--build-arg GINKGO_VERSION=2.27.5 \
+		--build-arg HELM_VERSION=4.1.1 \
+		--build-arg GINKGO_VERSION=2.28.1 \
 		--build-arg GOLINT_VERSION=latest \
 		rootfs \
 		--tag $(IMAGE):$(TAG) \

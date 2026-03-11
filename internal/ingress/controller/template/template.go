@@ -564,9 +564,7 @@ func buildAuthLocation(input interface{}, globalExternalAuthURL string) string {
 		return ""
 	}
 
-	str := base64.URLEncoding.EncodeToString([]byte(location.Path))
-	// removes "=" after encoding
-	str = strings.ReplaceAll(str, "=", "")
+	str := base64.RawURLEncoding.EncodeToString([]byte(location.Path))
 
 	pathType := "default"
 	if location.PathType != nil {
@@ -788,7 +786,7 @@ func buildProxyPass(_ string, b, loc interface{}) string {
 
 		return fmt.Sprintf(`
 rewrite "(?i)%s" %s break;
-%v%v %s%s;`, path, location.Rewrite.Target, xForwardedPrefix, proxyPass, proto, upstreamName)
+%v%v %s%s;`, sanitizeQuotedRegex(path), location.Rewrite.Target, xForwardedPrefix, proxyPass, proto, upstreamName)
 	}
 
 	// default proxy_pass
