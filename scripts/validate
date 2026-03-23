@@ -5,29 +5,7 @@ cd $(dirname $0)/..
 
 echo Running validation
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 PACKAGES="$(go list ./... | grep -v /vendor/ | grep -v magefiles)"
-=======
-=======
-PACKAGES="$(go list ./... | grep -v /vendor/ | grep -v magefiles)"
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-PACKAGES="$(go list ./... | grep -v /vendor/ | grep -v magefiles)"
-=======
->>>>>>> 7856a9f8d ([nginx-1.14.x-fix] fixes)
-PACKAGES="$(go list ./... | grep -v /vendor/)"
-
->>>>>>> a98f9bc1e ((cherry-pick) commits: f3277463565ce64284d96aa659b5d0d11c17f058, b8966a64f5244c7a90cbd2282157db2838a508af)
-=======
-PACKAGES="$(go list ./... | grep -v /vendor/ | grep -v magefiles)"
->>>>>>> bb9a3dea7 ([nginx-1.14.x-fix] fixes)
-<<<<<<< HEAD
-=======
->>>>>>> 4a2ca42d0 ([nginx-1.14.x-fix] fixes)
->>>>>>> 7856a9f8d ([nginx-1.14.x-fix] fixes)
 echo Running: go vet
 go vet -mod=readonly ${PACKAGES}
 
