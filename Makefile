@@ -63,6 +63,11 @@ endif
 REGISTRY ?= us-central1-docker.pkg.dev/k8s-staging-images/ingress-nginx
 
 BASE_IMAGE ?= $(shell cat NGINX_BASE)
+BASE_IMAGE_CONTEXT ?=
+BASE_IMAGE_CONTEXT_FLAG :=
+ifneq ($(strip $(BASE_IMAGE_CONTEXT)),)
+BASE_IMAGE_CONTEXT_FLAG = --build-context base=$(BASE_IMAGE_CONTEXT)
+endif
 
 GOARCH=$(ARCH)
 
@@ -240,7 +245,7 @@ run-ingress-controller: ## Run the ingress controller locally using a kubectl pr
 
 .PHONY: builder
 builder:
-	docker buildx create --name $(BUILDER) --bootstrap --use || :
+	docker buildx create --name $(BUILDER) --bootstrap --use $(BUILDER_OPTS) || :
 	docker buildx inspect $(BUILDER)
 
 .PHONY: show-version
@@ -248,6 +253,7 @@ show-version:
 	echo -n $(TAG)
 
 BUILDER ?= ingress-nginx
+BUILDER_OPTS ?=
 PLATFORMS ?= amd64 arm arm64
 BUILDX_PLATFORMS ?= linux/amd64,linux/arm,linux/arm64
 
@@ -265,6 +271,7 @@ release: builder clean
 		--pull \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS) \
+		$(BASE_IMAGE_CONTEXT_FLAG) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
@@ -278,6 +285,7 @@ release: builder clean
 		--pull \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS)  \
+		$(BASE_IMAGE_CONTEXT_FLAG) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
@@ -304,6 +312,7 @@ push-image: builder
 		--push \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS) \
+		$(BASE_IMAGE_CONTEXT_FLAG) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
@@ -322,6 +331,7 @@ push-chroot-image: builder
 		--push \
 		--progress plain \
 		--platform $(BUILDX_PLATFORMS)  \
+		$(BASE_IMAGE_CONTEXT_FLAG) \
 		--build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 		--build-arg VERSION="$(TAG)" \
 		--build-arg COMMIT_SHA="$(COMMIT_SHA)" \
