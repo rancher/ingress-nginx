@@ -43,7 +43,7 @@ jobs:
     - name: Run Unit Tests
       run: ./scripts/test
 
-  e2e-build-base:
+  build-base-image-amd64:
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -51,8 +51,79 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v6
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image cache (amd64)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+        cache-to: type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }},mode=min
+
+  build-base-image-arm64:
+    permissions:
+      contents: read
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image cache (arm64)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/arm64
+        cache-from: |
+          type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-arm64-hardened-nginx
+        cache-to: type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }},mode=min
+
+  e2e-build-base:
+    needs: build-base-image-amd64
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up E2E base build environment
+      run: |
+        source ./scripts/version
+        echo "E2E_BASE_IMAGE=rancher/nginx" >> $GITHUB_ENV
+        echo "E2E_BASE_TAG=${NGINX_TAG}-e2e" >> $GITHUB_ENV
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    # Equivalent to calling `./scripts/e2e-build` but with GHA caching
     - name: Build E2E Base Image
-      run: ./scripts/e2e-build
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        load: true
+        tags: ${{ env.E2E_BASE_IMAGE }}:${{ env.E2E_BASE_TAG }}
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
     
     - name: Validate that all modules have required libraries
       run: ./scripts/validate-modules
@@ -238,54 +309,6 @@ jobs:
         
         FOCUS="$FOCUS_PATTERN" ./scripts/e2e-test
 
-  build-base-image-amd64:
-    needs: e2e
-    permissions:
-      contents: read
-    if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v6
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build base image cache (amd64)
-      uses: docker/build-push-action@v7
-      with:
-        context: ./images/nginx/rootfs
-        platforms: linux/amd64
-        cache-from: type=gha,scope=nginx-base-amd64-${{ github.ref_name }}
-        cache-to: type=gha,scope=nginx-base-amd64-${{ github.ref_name }},mode=min
-
-  build-base-image-arm64:
-    needs: e2e
-    permissions:
-      contents: read
-    if: github.event_name == 'release' && github.event.action == 'created'
-    runs-on: ubuntu-24.04-arm
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v6
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build base image cache (arm64)
-      uses: docker/build-push-action@v7
-      with:
-        context: ./images/nginx/rootfs
-        platforms: linux/arm64
-        cache-from: type=gha,scope=nginx-base-arm64-${{ github.ref_name }}
-        cache-to: type=gha,scope=nginx-base-arm64-${{ github.ref_name }},mode=min
-
   build-binary-amd64:
     needs: e2e
     if: github.event_name == 'release' && github.event.action == 'created'
@@ -420,8 +443,10 @@ jobs:
         context: ./images/nginx/rootfs
         platforms: linux/amd64,linux/arm64
         cache-from: |
-          type=gha,scope=nginx-base-amd64-${{ github.ref_name }}
-          type=gha,scope=nginx-base-arm64-${{ github.ref_name }}
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+          type=gha,scope=nginx-base-arm64-hardened-nginx
         outputs: type=oci,dest=base.oci,tar=false
 
     - name: Override BASE_IMAGE for OCI layout
