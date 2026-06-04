@@ -1,0 +1,154 @@
+name: Prime Daily Trivy Scan
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prime-trivy-auto-release
+  cancel-in-progress: false
+
+env:
+  RELEASE_SERIES_REGEX: ^v1\.15\.[0-9]+-prime[0-9]+$
+  RELEASE_BRANCH: hardened-nginx-1.15.x
+
+jobs:
+  scan-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve latest prime release and next tag
+        id: tags
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const seriesRegex = new RegExp(process.env.RELEASE_SERIES_REGEX)
+
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            })
+
+            const candidates = releases
+              .filter((r) => !r.draft)
+              .map((r) => r.tag_name)
+              .filter((tag) => seriesRegex.test(tag))
+
+            if (candidates.length === 0) {
+              core.setFailed(`No releases matched regex ${process.env.RELEASE_SERIES_REGEX}`)
+              return
+            }
+
+            const parseTag = (tag) => {
+              const match = tag.match(/^v(\d+)\.(\d+)\.(\d+)-prime(\d+)$/)
+              if (!match) return null
+              return {
+                tag,
+                major: Number(match[1]),
+                minor: Number(match[2]),
+                patch: Number(match[3]),
+                prime: Number(match[4]),
+              }
+            }
+
+            const parsed = candidates
+              .map(parseTag)
+              .filter(Boolean)
+
+            parsed.sort((a, b) => {
+              if (a.major !== b.major) return a.major - b.major
+              if (a.minor !== b.minor) return a.minor - b.minor
+              if (a.patch !== b.patch) return a.patch - b.patch
+              return a.prime - b.prime
+            })
+
+            const latest = parsed[parsed.length - 1]
+            const nextTag = `v${latest.major}.${latest.minor}.${latest.patch}-prime${latest.prime + 1}`
+            const baseImage = `${context.repo.owner}/nginx-ingress-controller:${latest.tag}`
+
+            core.info(`Latest prime release: ${latest.tag}`)
+            core.info(`Next prime release: ${nextTag}`)
+            core.info(`Base image to scan: ${baseImage}`)
+
+            core.setOutput('latest_tag', latest.tag)
+            core.setOutput('next_tag', nextTag)
+            core.setOutput('base_image', baseImage)
+
+      - name: Run Trivy scan against base image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.tags.outputs.base_image }}
+          format: json
+          output: trivy-base-image.json
+          severity: HIGH,CRITICAL
+          vuln-type: os
+          ignore-unfixed: false
+          exit-code: 0
+
+      - name: Count OS HIGH/CRITICAL vulnerabilities
+        id: vuln
+        run: |
+          COUNT=$(jq '[.Results[]? | select(.Class == "os-pkgs") | .Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy-base-image.json)
+          echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
+          echo "Detected ${COUNT} OS HIGH/CRITICAL vulnerabilities"
+
+      - name: "Read Secrets"
+        if: github.repository_owner == 'rancher'
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github/rancher-release-team-auto-tagger/app-credentials appId | APP_ID ;
+            secret/data/github/repo/${{ github.repository }}/github/rancher-release-team-auto-tagger/app-credentials privateKey | PRIVATE_KEY
+
+      - name: Generate GitHub App token
+        if: github.repository_owner == 'rancher'
+        id: generate-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.PRIVATE_KEY }}
+
+      - name: Set PAT for forks
+        if: github.repository_owner != 'rancher'
+        id: set-pat-token
+        run: echo "token=${{ secrets.RELEASE_SIGNING_TOKEN }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create next prime release
+        if: steps.vuln.outputs.count != '0'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ github.repository_owner == 'rancher' && steps.generate-app-token.outputs.token || steps.set-pat-token.outputs.token }}
+          script: |
+            const nextTag = ${{ toJson(steps.tags.outputs.next_tag) }}
+
+            try {
+              await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: nextTag,
+                target_commitish: process.env.RELEASE_BRANCH,
+                name: nextTag,
+                generate_release_notes: true,
+                body: [
+                  'Automated PRIME release generated by Trivy scan.',
+                  '| Previous Release | Base Image | Detected OS HIGH/CRITICAL CVEs |',
+                  '| --- | --- | --- |',
+                  '| ${{ steps.tags.outputs.latest_tag }} | ${{ steps.tags.outputs.base_image }} | ${{ steps.vuln.outputs.count }} |',
+                ].join('\n'),
+              })
+              core.info(`Created release ${nextTag}`)
+            } catch (error) {
+              if (error.status === 422) {
+                core.notice(`Release ${nextTag} already exists. No action required.`)
+              } else {
+                throw error
+              }
+            }
+
+      - name: No release needed
+        if: steps.vuln.outputs.count == '0'
+        run: echo "No OS HIGH/CRITICAL CVEs detected in base image. Skipping release creation."
