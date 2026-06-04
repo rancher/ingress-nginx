@@ -1,0 +1,498 @@
+name: Hardened CI
+on: 
+  push:
+    branches:
+      - hardened-nginx-**
+  pull_request:
+    branches:
+      - hardened-nginx-**
+  release:
+    types:
+      - created
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  BASE_IMAGE_REPO: ${{ github.repository_owner }}/nginx
+
+jobs:
+  unit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    # Taken from the upstream ci.yaml action
+    - name: Get go version
+      run: echo "GOLANG_VERSION=$(cat GOLANG_VERSION)" >> $GITHUB_ENV
+
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+        check-latest: true
+    
+    - name: Build Test Runner Image
+      run: make -C images/test-runner load
+
+    - name: Run Unit Tests
+      run: ./scripts/test
+
+  build-base-image-amd64:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image cache (amd64)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+        cache-to: type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }},mode=min
+
+  build-base-image-arm64:
+    permissions:
+      contents: read
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image cache (arm64)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/arm64
+        cache-from: |
+          type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-arm64-hardened-nginx
+        cache-to: type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }},mode=min
+
+  e2e-build-base:
+    needs: build-base-image-amd64
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up E2E base build environment
+      run: |
+        source ./scripts/version
+        echo "E2E_BASE_IMAGE=rancher/nginx" >> $GITHUB_ENV
+        echo "E2E_BASE_TAG=${NGINX_TAG}-e2e" >> $GITHUB_ENV
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    # Equivalent to calling `./scripts/e2e-build` but with GHA caching
+    - name: Build E2E Base Image
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        load: true
+        tags: ${{ env.E2E_BASE_IMAGE }}:${{ env.E2E_BASE_TAG }}
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+    
+    - name: Validate that all modules have required libraries
+      run: ./scripts/validate-modules
+      
+    - name: Save Docker image
+      run: docker save -o nginx-ingress-e2e-base.tar $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "rancher/nginx")
+
+    - name: Upload Docker images
+      uses: actions/upload-artifact@v7
+      with:
+        name: nginx-ingress-e2e-base
+        path: nginx-ingress-e2e-base.tar
+        retention-days: 1
+  
+  e2e-build-ctr:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Build E2E Test Runner Image
+      run: make -C images/test-runner load
+
+    - name: Build E2E Test Image
+      run: make -C test/e2e-image image
+
+    - name: Save Docker image
+      run: docker save -o nginx-ingress-e2e-ctr.tar nginx-ingress-controller:e2e
+
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v7
+      with:
+        name: nginx-ingress-e2e-ctr
+        path: nginx-ingress-e2e-ctr.tar
+        retention-days: 1
+  
+  build-certgen:
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set Tag
+      run: |
+        echo "KWC_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    
+    - name: Check if image already exists on DockerHub
+      id: certgen_exists
+      run: |
+        REPO="${{ github.repository_owner }}/kube-webhook-certgen"
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://hub.docker.com/v2/repositories/${REPO}/tags/${KWC_TAG}")
+        if [[ "$STATUS" == "200" ]]; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+    
+    - name: Check if image already exists on Prime Registry
+      id: prime_certgen_exists
+      run: |
+        # Short-circuit and assume the image exists if this is not the rancher repository
+        if [[ "${{ github.repository_owner }}" != "rancher" ]]; then
+          echo "prime_exists=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        REPO="${{ env.PRIME_REGISTRY }}/rancher/kube-webhook-certgen"
+        if skopeo inspect "docker://${REPO}:${KWC_TAG}" 1> /dev/null; then
+          echo "prime_exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "prime_exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher' && ( steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true' )
+      uses: docker/login-action@v4
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher' && steps.certgen_exists.outputs.exists != 'true'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Set up QEMU
+      if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      uses: docker/setup-buildx-action@v4
+
+    - name: Setup Docker Credentials
+      if: github.repository_owner != 'rancher' && steps.certgen_exists.outputs.exists != 'true'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      run: |
+        echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+        echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
+
+    - name: Build and push kube-webhook-certgen image
+      if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      env:
+        NAME: kube-webhook-certgen
+      with:
+        image: kube-webhook-certgen
+        tag: ${{ env.KWC_TAG }}
+        make-target: push
+        make-target-directory: ./images/
+        public-repo: ${{ github.repository_owner }}
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+        push-to-public: ${{ steps.certgen_exists.outputs.exists != 'true' }}
+
+        prime-repo: rancher
+        prime-make-target-directory: ./images/
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' && steps.prime_certgen_exists.outputs.prime_exists != 'true' }}
+
+  e2e:
+    needs: [e2e-build-base, e2e-build-ctr]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    # Annotations and Settings have many checks, the rest of the focus groups only have 1-5 checks each
+    # So they are combined in larger groups to reduce the number of jobs
+    strategy:
+      fail-fast: true
+      matrix:
+        focus: 
+          - Annotations_B
+          - "Annotations_A|Settings"
+          - "Admission|Cgroups|Default Backend|Disable Leader|Endpointslices|Flag|TCP"
+          - "Ingress|Lua|Memory Leak|metrics|Security|Service|Shutdown|SSL|Status|TopologyHints"
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+    
+    - name: Download Docker image
+      uses: actions/download-artifact@v8
+      with:
+        pattern: nginx-ingress-e2e-*
+        merge-multiple: true
+      
+    - name: Load Docker images
+      run: |
+        docker load -i nginx-ingress-e2e-base.tar
+        docker load -i nginx-ingress-e2e-ctr.tar
+    
+    - name: Run E2E Tests with combined focus
+      env:
+        SKIP_E2E_IMAGE_CREATION: "true"
+      run: |
+        # Add brackets around each focus area in the OR pattern
+        FOCUS_PATTERN=$(echo "${{ matrix.focus }}" | sed -E 's/([^|]+)/\\[\1\\]/g')
+        
+        FOCUS="$FOCUS_PATTERN" ./scripts/e2e-test
+
+  build-binary-amd64:
+    needs: e2e
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Binary
+        run: |
+          ARCH=amd64 ./scripts/build-binary
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries-amd64
+          path: rootfs/bin/amd64
+          retention-days: 2
+
+  build-binary-arm64:
+    needs: e2e
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Binary
+        run: |
+          ARCH=arm64 ./scripts/build-binary
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries-arm64
+          path: rootfs/bin/arm64
+          retention-days: 2
+  
+  release-controller-image:
+    needs: [build-base-image-amd64, build-base-image-arm64, build-binary-amd64, build-binary-arm64]
+    permissions:
+      contents: read
+      id-token: write # needed for the Vault authentication
+    if: github.event_name == 'release' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ github.repository_owner }}
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Download Binaries
+      uses: actions/download-artifact@v8
+      with:
+        pattern: binaries-*
+        path: ./bin
+
+    - name: Setup binaries in correct location, fix permissions
+      run: |
+        mkdir -p ./rootfs/bin
+        mv ./bin/binaries-amd64 ./rootfs/bin/amd64
+        mv ./bin/binaries-arm64 ./rootfs/bin/arm64
+        chmod +x ./rootfs/bin/amd64/* ./rootfs/bin/arm64/*
+
+    - name: Setup tags
+      run: |
+        source ./scripts/version
+        echo "TAG=$TAG" >> $GITHUB_ENV
+        echo "PKG=$PKG" >> $GITHUB_ENV
+        echo "NGINX_TAG=$NGINX_TAG" >> $GITHUB_ENV
+        echo "BASE_IMAGE=$BASE_IMAGE" >> $GITHUB_ENV
+
+    # if the release is suffixed with -primeXX, do not publish to DockerHub
+    - name: Check release suffix
+      id: release_suffix
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == *"-prime"* ]]; then
+          echo "RELEASE_SUFFIX=prime" >> $GITHUB_ENV
+        else
+          echo "RELEASE_SUFFIX=community" >> $GITHUB_ENV
+        fi
+
+    # Only pull vault secrets if the repository is rancher
+    - name: "Read secrets"
+      if: github.repository_owner == 'rancher'
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials username | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/${{ github.repository_owner }}/credentials password | DOCKER_TOKEN ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials username | PRIME_REGISTRY_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials password | PRIME_REGISTRY_PASSWORD
+    
+    - name: Login to Container Registry with Rancher Secrets
+      if: github.repository_owner == 'rancher' && env.RELEASE_SUFFIX == 'community'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_TOKEN }}
+
+    # For forks, setup docker login with GHA secrets
+    - name: Login to Container Registry
+      if: github.repository_owner != 'rancher'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image OCI layout (cached)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64,linux/arm64
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-arm64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+          type=gha,scope=nginx-base-arm64-hardened-nginx
+        outputs: type=oci,dest=base.oci,tar=false
+
+    - name: Override BASE_IMAGE for OCI layout
+      run: |
+        echo "BASE_IMAGE=base" >> $GITHUB_ENV
+        echo "BASE_IMAGE_CONTEXT=oci-layout://$GITHUB_WORKSPACE/base.oci" >> $GITHUB_ENV
+
+    - name: Setup Docker Credentials
+      if: github.repository_owner != 'rancher'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      run: |
+        echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> $GITHUB_ENV
+        echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
+    
+    - name: Build and push controller image
+      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      with:
+        image: nginx-ingress-controller
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-image
+        public-repo: ${{ env.REGISTRY }}
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+        push-to-public: ${{ github.repository_owner != 'rancher' || env.RELEASE_SUFFIX == 'community' }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
+
+    - name: Build and push controller chroot image
+      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      with:
+        image: nginx-ingress-controller-chroot
+        tag: ${{ github.event.release.tag_name }}
+        make-target: push-chroot-image
+        public-repo: ${{ env.REGISTRY }}
+        public-username: ${{ env.DOCKER_USERNAME }}
+        public-password: ${{ env.DOCKER_TOKEN }}
+        push-to-public: ${{ github.repository_owner != 'rancher' || env.RELEASE_SUFFIX == 'community' }}
+
+        prime-repo: rancher
+        prime-registry: ${{ env.PRIME_REGISTRY }}
+        prime-username: ${{ env.PRIME_REGISTRY_USERNAME }}
+        prime-password: ${{ env.PRIME_REGISTRY_PASSWORD }}
+        push-to-prime: ${{ github.repository_owner == 'rancher' }}
