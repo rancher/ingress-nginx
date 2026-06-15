@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: prime-trivy-auto-release
@@ -19,7 +19,18 @@ env:
 jobs:
   scan-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
+    
+      - name: "Read secrets"
+        if: github.repository_owner == 'rancher'
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/rancher-prime-registry/credentials registry | PRIME_REGISTRY ;
+      
       - name: Resolve latest prime release and next tag
         id: tags
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
@@ -81,7 +92,7 @@ jobs:
       - name: Run Trivy scan against base image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ steps.tags.outputs.base_image }}
+          image-ref: ${{ github.repository_owner == 'rancher' && format('{0}/{1}', env.PRIME_REGISTRY, steps.tags.outputs.base_image) || steps.tags.outputs.base_image }}
           format: json
           output: trivy-base-image.json
           severity: HIGH,CRITICAL
@@ -97,7 +108,7 @@ jobs:
           echo "Detected ${COUNT} OS HIGH/CRITICAL vulnerabilities"
 
       - name: "Read Secrets"
-        if: github.repository_owner == 'rancher'
+        if: github.repository_owner == 'rancher' && steps.vuln.outputs.count != '0'
         uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
@@ -105,7 +116,7 @@ jobs:
             secret/data/github/repo/${{ github.repository }}/github/rancher-release-team-auto-tagger/app-credentials privateKey | PRIVATE_KEY
 
       - name: Generate GitHub App token
-        if: github.repository_owner == 'rancher'
+        if: github.repository_owner == 'rancher' && steps.vuln.outputs.count != '0'
         id: generate-app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
@@ -113,7 +124,7 @@ jobs:
           private-key: ${{ env.PRIVATE_KEY }}
 
       - name: Set PAT for forks
-        if: github.repository_owner != 'rancher'
+        if: github.repository_owner != 'rancher' && steps.vuln.outputs.count != '0'
         id: set-pat-token
         run: echo "token=${{ secrets.RELEASE_SIGNING_TOKEN }}" >> "$GITHUB_OUTPUT"
 
