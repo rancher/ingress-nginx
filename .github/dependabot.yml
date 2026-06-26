@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        update-types:
+          - "major"
+          - "patch"
+  - package-ecosystem: "gomod"
+    directories:
+      - "/"
+      - "**/rootfs"
+    schedule:
+      interval: "weekly"
+    groups:
+      go:
+        update-types:
+          - "patch"
