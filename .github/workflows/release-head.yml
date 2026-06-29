@@ -185,32 +185,66 @@ jobs:
           exit 0
         fi
 
-        REPO="${{ env.PRIME_REGISTRY }}/rancher/kube-webhook-certgen"
+        REPO="${{ env.STAGING_REGISTRY }}/rancher/kube-webhook-certgen"
         if skopeo inspect "docker://${REPO}:${KWC_TAG}" 1> /dev/null; then
           echo "prime_exists=true" >> "$GITHUB_OUTPUT"
         else
           echo "prime_exists=false" >> "$GITHUB_OUTPUT"
         fi
 
+    - name: Set Target Registry
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      run: |
+        if [[ "${{ github.repository_owner }}" == "rancher" ]]; then
+          echo "TARGET_REGISTRY=${{ env.STAGING_REGISTRY }}/rancher" >> $GITHUB_ENV
+        else
+          echo "TARGET_REGISTRY=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
+        fi
+
+    - name: Login to Prime Registry
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true' && github.repository_owner == 'rancher'
+      uses: docker/login-action@v4
+      with:
+        registry: ${{ env.STAGING_REGISTRY }}
+        username: ${{ env.STAGING_REGISTRY_USERNAME }}
+        password: ${{ env.STAGING_REGISTRY_PASSWORD }}
+
+    - name: Login to Docker Hub
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true' && github.repository_owner != 'rancher'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Set up QEMU
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      uses: docker/setup-buildx-action@v4
+
+    - name: Get certgen build args
+      if: steps.prime_certgen_exists.outputs.prime_exists != 'true'
+      run: |
+        echo "KWC_BASE_IMAGE=$(cat NGINX_BASE)" >> $GITHUB_ENV
+        echo "KWC_GOLANG_VERSION=$(cat GOLANG_VERSION)" >> $GITHUB_ENV
+
     - name: Build and push kube-webhook-certgen image
       if: steps.prime_certgen_exists.outputs.prime_exists != 'true'
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
-      env:
-        NAME: kube-webhook-certgen
+      uses: docker/build-push-action@v7
       with:
-        image: kube-webhook-certgen
-        tag: ${{ env.KWC_TAG }}
-        make-target: push
-        make-target-directory: ./images/
-
-        push-to-public: false
-
-        prime-repo: rancher
-        prime-make-target-directory: ./images/
-        prime-registry: ${{ env.STAGING_REGISTRY }}
-        prime-username: ${{ env.STAGING_REGISTRY_USERNAME }}
-        prime-password: ${{ env.STAGING_REGISTRY_PASSWORD }}
-        push-to-prime: true
+        context: ./images/kube-webhook-certgen/rootfs
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ env.TARGET_REGISTRY }}/kube-webhook-certgen:${{ env.KWC_TAG }}
+        build-args: |
+          BASE_IMAGE=${{ env.KWC_BASE_IMAGE }}
+          GOLANG_VERSION=${{ env.KWC_GOLANG_VERSION }}
+        labels: |
+          org.opencontainers.image.description=Ingress NGINX kube-webhook-certgen
+          org.opencontainers.image.source=https://github.com/kubernetes/ingress-nginx
+          org.opencontainers.image.licenses=Apache-2.0
 
   e2e:
     needs: [e2e-build-base, e2e-build-ctr]
@@ -345,8 +379,24 @@ jobs:
           secret/data/github/repo/${{ github.repository }}/rancher-prime-stg-registry/credentials username | STAGING_REGISTRY_USERNAME ;
           secret/data/github/repo/${{ github.repository }}/rancher-prime-stg-registry/credentials password | STAGING_REGISTRY_PASSWORD ;
     
+    - name: Set Target Registry
+      run: |
+        if [[ "${{ github.repository_owner }}" == "rancher" ]]; then
+          echo "TARGET_REGISTRY=${{ env.STAGING_REGISTRY }}/rancher" >> $GITHUB_ENV
+        else
+          echo "TARGET_REGISTRY=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
+        fi
+
+    - name: Login to Prime Registry
+      if: github.repository_owner == 'rancher'
+      uses: docker/login-action@v4
+      with:
+        registry: ${{ env.STAGING_REGISTRY }}
+        username: ${{ env.STAGING_REGISTRY_USERNAME }}
+        password: ${{ env.STAGING_REGISTRY_PASSWORD }}
+
     # For forks, setup docker login with GHA secrets
-    - name: Login to Container Registry
+    - name: Login to Docker Hub
       if: github.repository_owner != 'rancher'
       uses: docker/login-action@v4
       with:
@@ -377,29 +427,37 @@ jobs:
         echo "BASE_IMAGE_CONTEXT=oci-layout://$GITHUB_WORKSPACE/base.oci" >> $GITHUB_ENV
 
     - name: Build and push controller image
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      uses: docker/build-push-action@v7
       with:
-        image: nginx-ingress-controller
-        tag: ${{ env.TAG_VERSION }}
-        make-target: push-image
-        push-to-public: false
-
-        prime-repo: rancher
-        prime-registry: ${{ env.STAGING_REGISTRY }}
-        prime-username: ${{ env.STAGING_REGISTRY_USERNAME }}
-        prime-password: ${{ env.STAGING_REGISTRY_PASSWORD }}
-        push-to-prime: true
+        context: ./rootfs
+        file: ./rootfs/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ env.TARGET_REGISTRY }}/nginx-ingress-controller:${{ env.TAG_VERSION }}
+        build-contexts: |
+          base=${{ env.BASE_IMAGE_CONTEXT }}
+        build-args: |
+          BASE_IMAGE=${{ env.BASE_IMAGE }}
+          VERSION=${{ env.TAG }}
+          COMMIT_SHA=${{ github.sha }}
+          BUILD_ID=${{ github.run_id }}
+        sbom: true
+        provenance: mode=max
 
     - name: Build and push controller chroot image
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      uses: docker/build-push-action@v7
       with:
-        image: nginx-ingress-controller-chroot
-        tag: ${{ env.TAG_VERSION }}
-        make-target: push-chroot-image
-        push-to-public: false
-
-        prime-repo: rancher
-        prime-registry: ${{ env.STAGING_REGISTRY }}
-        prime-username: ${{ env.STAGING_REGISTRY_USERNAME }}
-        prime-password: ${{ env.STAGING_REGISTRY_PASSWORD }}
-        push-to-prime: true
+        context: ./rootfs
+        file: ./rootfs/Dockerfile-chroot
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ env.TARGET_REGISTRY }}/nginx-ingress-controller-chroot:${{ env.TAG_VERSION }}
+        build-contexts: |
+          base=${{ env.BASE_IMAGE_CONTEXT }}
+        build-args: |
+          BASE_IMAGE=${{ env.BASE_IMAGE }}
+          VERSION=${{ env.TAG }}
+          COMMIT_SHA=${{ github.sha }}
+          BUILD_ID=${{ github.run_id }}
+        sbom: true
+        provenance: mode=max
