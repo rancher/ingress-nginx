@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     # Taken from the upstream ci.yaml action
     - name: Get go version
@@ -32,7 +32,7 @@ jobs:
 
     - name: Set up Go
       id: go
-      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
       with:
         go-version: ${{ env.GOLANG_VERSION }}
         check-latest: true
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v4
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up E2E base build environment
       run: |
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Build E2E Test Runner Image
       run: make -C images/test-runner load
@@ -171,7 +171,7 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set Tag
       run: |
@@ -250,7 +250,7 @@ jobs:
 
     - name: Build and push kube-webhook-certgen image
       if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@e9b6789032dbe9e289ccc6f7532da8fd349922b3 # v0.75.0
       env:
         NAME: kube-webhook-certgen
       with:
@@ -287,7 +287,7 @@ jobs:
           - "Ingress|Lua|Memory Leak|metrics|Security|Service|Shutdown|SSL|Status|TopologyHints"
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     
     - name: Download Docker image
       uses: actions/download-artifact@v8
@@ -315,7 +315,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -340,7 +340,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -371,7 +371,7 @@ jobs:
     steps:
 
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Download Binaries
       uses: actions/download-artifact@v8
@@ -464,7 +464,7 @@ jobs:
         echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
     
     - name: Build and push controller image
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@e9b6789032dbe9e289ccc6f7532da8fd349922b3 # v0.75.0
       with:
         image: nginx-ingress-controller
         tag: ${{ github.event.release.tag_name }}
@@ -481,7 +481,7 @@ jobs:
         push-to-prime: ${{ github.repository_owner == 'rancher' }}
 
     - name: Build and push controller chroot image
-      uses: rancher/ecm-distro-tools/actions/publish-image@da1161ff8cc77403c6857c0e740cec1cbdfa90bc # v0.65.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@e9b6789032dbe9e289ccc6f7532da8fd349922b3 # v0.75.0
       with:
         image: nginx-ingress-controller-chroot
         tag: ${{ github.event.release.tag_name }}
