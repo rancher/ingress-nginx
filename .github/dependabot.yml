@@ -16,6 +16,7 @@ updates:
     directories:
       - "/"
       - "**/rootfs"
+    target-branch: "hardened-nginx-1.15.x" # see https://github.com/dependabot/dependabot-core/issues/1778#issuecomment-1988140219
     schedule:
       interval: "weekly"
     groups:
