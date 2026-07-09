@@ -6,9 +6,12 @@ updates:
       interval: "monthly"
     groups:
       actions:
+        patterns:
+          - "*"
         update-types:
           - "major"
-          - "patch"
+          - "minor"
+  # General Go dependencies, updated weekly
   - package-ecosystem: "gomod"
     directories:
       - "/"
@@ -17,5 +20,24 @@ updates:
       interval: "weekly"
     groups:
       go:
+        patterns:
+          - "*"
         update-types:
+          - "minor"
           - "patch"
+    ignore:
+      - dependency-name: k8s.io/*
+
+   # K8s dependencies, updated monthly
+  - package-ecosystem: "gomod"
+    directories:
+      - "/"
+      - "**/rootfs"
+    schedule:
+      interval: "monthly"
+    groups:
+      k8s-dependencies:
+        patterns:
+          - k8s.io/*
+    ignore:
+      - dependency-name: "*"
