@@ -1,15 +1,8 @@
 name: Hardened CI
 on: 
-  push:
-    branches:
-      - hardened-nginx-**
-  pull_request:
-    branches:
-      - hardened-nginx-**
   release:
     types:
       - created
-  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -70,7 +63,6 @@ jobs:
   build-base-image-arm64:
     permissions:
       contents: read
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-24.04-arm
     steps:
     - name: Check out code
@@ -168,7 +160,6 @@ jobs:
       id-token: write # needed for the Vault authentication
 
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'created'
     steps:
     - name: Check out code
       uses: actions/checkout@v6
@@ -311,7 +302,6 @@ jobs:
 
   build-binary-amd64:
     needs: e2e
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -336,7 +326,6 @@ jobs:
 
   build-binary-arm64:
     needs: e2e
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Check out code
@@ -364,7 +353,6 @@ jobs:
     permissions:
       contents: read
       id-token: write # needed for the Vault authentication
-    if: github.event_name == 'release' && github.event.action == 'created'
     runs-on: ubuntu-latest
     env:
       REGISTRY: ${{ github.repository_owner }}

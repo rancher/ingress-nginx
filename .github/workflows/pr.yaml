@@ -1,0 +1,208 @@
+name: Pull Request
+on: 
+  pull_request:
+    branches:
+      - hardened-nginx-**
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    # Taken from the upstream ci.yaml action
+    - name: Get go version
+      run: echo "GOLANG_VERSION=$(cat GOLANG_VERSION)" >> $GITHUB_ENV
+
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+        check-latest: true
+    
+    - name: Build Test Runner Image
+      run: make -C images/test-runner load
+
+    - name: Run Unit Tests
+      run: ./scripts/test
+
+  build-base-image-amd64:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build base image cache (amd64)
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+        cache-to: type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }},mode=min
+
+  e2e-build-base:
+    needs: build-base-image-amd64
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up E2E base build environment
+      run: |
+        source ./scripts/version
+        echo "E2E_BASE_IMAGE=rancher/nginx" >> $GITHUB_ENV
+        echo "E2E_BASE_TAG=${NGINX_TAG}-e2e" >> $GITHUB_ENV
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    # Equivalent to calling `./scripts/e2e-build` but with GHA caching
+    - name: Build E2E Base Image
+      uses: docker/build-push-action@v7
+      with:
+        context: ./images/nginx/rootfs
+        platforms: linux/amd64
+        load: true
+        tags: ${{ env.E2E_BASE_IMAGE }}:${{ env.E2E_BASE_TAG }}
+        cache-from: |
+          type=gha,scope=nginx-base-amd64-${{ github.base_ref || github.ref_name }}
+          type=gha,scope=nginx-base-amd64-hardened-nginx
+    
+    - name: Validate that all modules have required libraries
+      run: ./scripts/validate-modules
+      
+    - name: Save Docker image
+      run: docker save -o nginx-ingress-e2e-base.tar $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "rancher/nginx")
+
+    - name: Upload Docker images
+      uses: actions/upload-artifact@v7
+      with:
+        name: nginx-ingress-e2e-base
+        path: nginx-ingress-e2e-base.tar
+        retention-days: 1
+  
+  e2e-build-ctr:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Build E2E Test Runner Image
+      run: make -C images/test-runner load
+
+    - name: Build E2E Test Image
+      run: make -C test/e2e-image image
+
+    - name: Save Docker image
+      run: docker save -o nginx-ingress-e2e-ctr.tar nginx-ingress-controller:e2e
+
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v7
+      with:
+        name: nginx-ingress-e2e-ctr
+        path: nginx-ingress-e2e-ctr.tar
+        retention-days: 1
+  
+  build-certgen:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build kube-webhook-certgen image (no push)
+      run: make -C images NAME=kube-webhook-certgen build
+
+  build-binary-amd64:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Build Binary (amd64)
+      run: ARCH=amd64 ./scripts/build-binary
+
+  build-binary-arm64:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Build Binary (arm64)
+      run: ARCH=arm64 ./scripts/build-binary
+
+  e2e:
+    needs: [e2e-build-base, e2e-build-ctr, build-certgen]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    # Annotations and Settings have many checks, the rest of the focus groups only have 1-5 checks each
+    # So they are combined in larger groups to reduce the number of jobs
+    strategy:
+      fail-fast: true
+      matrix:
+        focus: 
+          - Annotations_B
+          - "Annotations_A|Settings"
+          - "Admission|Cgroups|Default Backend|Disable Leader|Endpointslices|Flag|TCP"
+          - "Ingress|Lua|Memory Leak|metrics|Security|Service|Shutdown|SSL|Status|TopologyHints"
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+    
+    - name: Download Docker image
+      uses: actions/download-artifact@v8
+      with:
+        pattern: nginx-ingress-e2e-*
+        merge-multiple: true
+      
+    - name: Load Docker images
+      run: |
+        docker load -i nginx-ingress-e2e-base.tar
+        docker load -i nginx-ingress-e2e-ctr.tar
+    
+    - name: Run E2E Tests with combined focus
+      env:
+        SKIP_E2E_IMAGE_CREATION: "true"
+      run: |
+        # Add brackets around each focus area in the OR pattern
+        FOCUS_PATTERN=$(echo "${{ matrix.focus }}" | sed -E 's/([^|]+)/\\[\1\\]/g')
+        
+        FOCUS="$FOCUS_PATTERN" ./scripts/e2e-test
+
