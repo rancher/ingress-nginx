@@ -16,6 +16,7 @@ updates:
     directories:
       - "/"
       - "**/rootfs"
+    target-branch: "hardened-nginx-1.15.x" # see https://github.com/dependabot/dependabot-core/issues/1778#issuecomment-1988140219
     schedule:
       interval: "weekly"
     groups:
@@ -27,17 +28,20 @@ updates:
           - "patch"
     ignore:
       - dependency-name: k8s.io/*
+      - dependency-name: sigs.k8s.io/*
 
-   # K8s dependencies, updated monthly
+  # K8s dependencies, updated monthly
   - package-ecosystem: "gomod"
     directories:
       - "/"
       - "**/rootfs"
     schedule:
       interval: "monthly"
+    allow:
+      - dependency-name: k8s.io/*
+      - dependency-name: sigs.k8s.io/* # Allow it through the gate
     groups:
       k8s-dependencies:
         patterns:
           - k8s.io/*
-    ignore:
-      - dependency-name: "*"
+          - sigs.k8s.io/* # Bundle it into the same PR
