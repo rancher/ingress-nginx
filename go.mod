@@ -18,7 +18,7 @@ require (
 	github.com/moul/pb v0.0.0-20220425114252-bca18df4138c
 	github.com/ncabatoff/process-exporter v0.8.7
 	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/opencontainers/cgroups v0.0.9
+	github.com/opencontainers/cgroups v0.1.0
 	github.com/pires/go-proxyproto v0.15.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/prometheus/client_golang v1.24.1
@@ -26,13 +26,13 @@ require (
 	github.com/prometheus/common v0.70.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	github.com/yudai/gojsondiff v1.0.0
 	github.com/zakjan/cert-chain-resolver v0.0.0-20221221105603-fcedb00c5b30
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/crypto v0.55.0
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 	gopkg.in/go-playground/pool.v3 v3.1.1
 	gopkg.in/mcuadros/go-syslog.v2 v2.3.0
 	helm.sh/helm/v4 v4.2.4
@@ -107,7 +107,7 @@ require (
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	github.com/sirupsen/logrus v1.10.0 // indirect
+	github.com/sirupsen/logrus v1.10.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
@@ -128,7 +128,6 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/kube-openapi v0.0.0-20260319004828-5883c5ee87b9 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
