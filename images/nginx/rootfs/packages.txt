@@ -1,0 +1,21 @@
+# Runtime packages installed into the BCI Minimal root filesystem.
+liblmdb-0_9_30
+libxml2-tools
+libmaxminddb0
+libcap-progs
+crypto-policies-scripts
+libgrpc++1_59
+libatomic1
+grpc-devel
+wget
+which
+libyajl2
+openssl-3
+libpcre1
+libicu77
+util-linux
+liblua5_4-5
+libxslt-tools
+procps
+shadow
+catatonit

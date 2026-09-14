@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# With BCI as base image, with the SLES 15 SP7 tag, which has a newer version of glibc
-FROM registry.suse.com/bci/bci-base:16.0 AS builder
+# BCI 16.0 provides the newer glibc required by the compiled nginx modules.
+ARG BCI_BUILD_IMAGE=registry.suse.com/bci/bci-base:16.0
+ARG BCI_RUNTIME_IMAGE=registry.suse.com/bci/bci-minimal:16.0
+
+FROM ${BCI_BUILD_IMAGE} AS builder
  
 RUN zypper addrepo -p 105 http://download.opensuse.org/distribution/leap/16.0/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
@@ -26,8 +29,23 @@ COPY --chmod=0755 build.sh /
 
 RUN /build.sh
 
-# Use a multi-stage build
-FROM registry.suse.com/bci/bci-base:16.0
+# Populate a BCI Minimal root filesystem through Zypper without including the
+# package manager or its metadata in the published image.
+FROM ${BCI_RUNTIME_IMAGE} AS runtime_rootfs
+
+FROM builder AS runtime_packages
+
+COPY --from=runtime_rootfs / /rootfs
+COPY --from=builder /etc/zypp/repos.d/ /rootfs/etc/zypp/repos.d/
+COPY packages.txt /tmp/packages.txt
+
+RUN zypper --root /rootfs --gpg-auto-import-keys refresh && \
+  zypper --root /rootfs --gpg-auto-import-keys install -y --allow-vendor-change $(sed 's/#.*//' /tmp/packages.txt) && \
+  rm -rf /rootfs/etc/zypp /rootfs/var/cache/zypp
+
+FROM runtime_rootfs
+
+COPY --from=runtime_packages /rootfs/ /
 
 ENV PATH=$PATH:/usr/local/luajit/bin:/usr/local/nginx/sbin:/usr/local/nginx/bin
 
@@ -41,30 +59,6 @@ COPY --from=builder /opt /opt
 COPY --from=builder /etc/nginx /etc/nginx
 
 RUN ln -s /usr/lib64/liblua5.3.so.5.3.0 /usr/local/lib/liblua-5.3.so
-
-RUN zypper addrepo \
-    -p 105 http://download.opensuse.org/distribution/leap/16.0/repo/oss/ download.opensuse.org-oss && \
-    zypper --gpg-auto-import-keys refresh
-RUN zypper install -y --allow-vendor-change \
-    liblmdb-0_9_30 \
-    libxml2-tools \
-    libmaxminddb0 \
-    libcap-progs \    
-    crypto-policies-scripts \
-    libgrpc++1_59 \
-    libatomic1 \
-    grpc-devel \
-    wget \
-    which \
-    libyajl2 \
-    openssl-3 \
-    libpcre1 \
-    libicu77 \
-    util-linux \
-    liblua5_4-5 \
-    libxslt-tools \
-    procps \
-    catatonit
 
 RUN ldDirs=" \
       /usr/local/lib \
