@@ -17,6 +17,10 @@ FROM registry.suse.com/bci/bci-base:16.0 AS builder
 RUN zypper addrepo -p 105 http://download.opensuse.org/distribution/leap/16.0/repo/oss/ download.opensuse.org-oss && \
     zypper --gpg-auto-import-keys refresh
 
+COPY --chmod=0755 version.sh download.sh /
+
+RUN /download.sh
+
 COPY patches /patches
 COPY --chmod=0755 build.sh /
 
