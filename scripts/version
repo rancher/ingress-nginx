@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ "$GIT_IN_DAPPER" = true ]; then
-    git config --global user.email "rancher-ci@rancher.com"
-    git config --global user.name "rancher-ci"
-fi
-
 # go.work.sum is highly depent on the local build environment, so we ignore it
 if [ -n "$(git status --porcelain --untracked-files=no | grep -v 'M go.work.sum')" ]; then
     DIRTY="-dirty"
@@ -22,9 +17,7 @@ else
     VERSION="${GIT_COMMIT}${DIRTY}"
 fi
 
-if [ -z "${ARCH}" ]; then
-    ARCH=amd64
-fi
+ARCH=${ARCH:-amd64}
 
 export TAG=${TAG:-$VERSION}
 export PKG="k8s.io/ingress-nginx"

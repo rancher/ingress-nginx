@@ -1,21 +1,40 @@
 #!/bin/bash
-set -e
+set -o errexit
+set -o pipefail
 
-source $(dirname $0)/version
+source "$(dirname "$0")/version"
 
-cd $(dirname $0)/..
+cd "$(dirname "$0")/.."
 
 TAG=${NGINX_TAG}-e2e
 
-missing_libs=$(docker run rancher/nginx:${TAG} /bin/bash -c "ldd /etc/nginx/modules/*")
+missing_libs=$(docker run --rm --entrypoint /bin/bash rancher/nginx:${TAG} -c '
+  shopt -s nullglob globstar
+  targets=(
+    /usr/local/nginx/sbin/nginx
+    /etc/nginx/modules/*
+    /usr/local/lib/*.so*
+    /usr/local/lib64/*.so*
+    /usr/local/lib/lua/**/*.so
+    /usr/lib64/libopentelemetry*.so*
+    /usr/lib64/libbrotli*.so*
+    /opt/**/*.so*
+  )
+
+  for target in "${targets[@]}"; do
+    [[ -e "${target}" ]] || continue
+    printf "=== %s ===\n" "${target}"
+    ldd "${target}"
+  done
+')
 
 echo "$missing_libs" | awk '
-/\/etc\/nginx\/modules\// { 
-    module = $1; 
-    next 
-} 
+/^=== / {
+  module = $1;
+  next
+}
 /=> not found/ { 
-    print "Module " module " is missing library: " $1 
+  print "Runtime target " module " is missing library: " $1
 }'
 
 if echo "$missing_libs" | grep -q "not found"; then
