@@ -3,10 +3,10 @@ liblmdb-0_9_30
 libxml2-tools
 libmaxminddb0
 libcap-progs
-crypto-policies-scripts
-libgrpc++1_59
+libgrpc++1_60
 libatomic1
-grpc-devel
+diffutils
+grep
 wget
 which
 libyajl2
