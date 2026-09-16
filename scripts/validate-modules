@@ -30,7 +30,7 @@ missing_libs=$(docker run --rm --entrypoint /bin/bash rancher/nginx:${TAG} -c '
 
 echo "$missing_libs" | awk '
 /^=== / {
-  module = $1;
+  module = $2;
   next
 }
 /=> not found/ { 
