@@ -176,12 +176,12 @@ Include /etc/nginx/owasp-modsecurity-crs/rules/RESPONSE-999-EXCLUSION-RULES-AFTE
 cd "$BUILD_PATH/nginx-$NGINX_VERSION"
 
 # apply nginx patches
-for PATCH in `ls /patches`;do
+for PATCH in /patches/*;do
   echo "Patch: $PATCH"
   if [[ "$PATCH" == *.txt ]]; then
-    patch -p0 < /patches/$PATCH
+    patch -p0 < "$PATCH"
   else
-    patch -p1 < /patches/$PATCH
+    patch -p1 < "$PATCH"
   fi
 done
 
@@ -375,4 +375,4 @@ rm -rf /etc/nginx/owasp-modsecurity-crs/.git
 rm -rf /etc/nginx/owasp-modsecurity-crs/tests
 
 # remove .a files
-find /usr/local -name "*.a" -print | xargs /bin/rm
+find /usr/local -name "*.a" -delete
