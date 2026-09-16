@@ -7,7 +7,7 @@ libgrpc++1_60
 libatomic1
 diffutils
 grep
-wget
+curl
 which
 libyajl2
 openssl-3

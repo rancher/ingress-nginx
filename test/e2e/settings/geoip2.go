@@ -55,7 +55,7 @@ var _ = framework.DescribeSetting("Geoip2", func() {
 		assert.Nil(ginkgo.GinkgoT(), err, "updating ingress controller deployment flags")
 
 		filename := fmt.Sprintf("/etc/ingress-controller/geoip/%s.mmdb", edition)
-		exec, err := f.ExecIngressPod(fmt.Sprintf(`sh -c "mkdir -p '%s' && wget -O '%s' '%s' 2>&1"`, filepath.Dir(filename), filename, testdataURL))
+		exec, err := f.ExecIngressPod(fmt.Sprintf(`sh -c "mkdir -p '%s' && curl -fsSL -o '%s' '%s' 2>&1"`, filepath.Dir(filename), filename, testdataURL))
 		framework.Logf(exec)
 		assert.Nil(ginkgo.GinkgoT(), err, fmt.Sprintln("error downloading test geoip2 db", filename))
 
@@ -132,7 +132,7 @@ var _ = framework.DescribeSetting("Geoip2", func() {
 		assert.Nil(ginkgo.GinkgoT(), err, "updating ingress controller deployment flags")
 
 		filename := fmt.Sprintf("/etc/ingress-controller/geoip/%s.mmdb", edition)
-		exec, err := f.ExecIngressPod(fmt.Sprintf(`sh -c "mkdir -p '%s' && wget -O '%s' '%s' 2>&1"`, filepath.Dir(filename), filename, testdataURL))
+		exec, err := f.ExecIngressPod(fmt.Sprintf(`sh -c "mkdir -p '%s' && curl -fsSL -o '%s' '%s' 2>&1"`, filepath.Dir(filename), filename, testdataURL))
 		framework.Logf(exec)
 		assert.Nil(ginkgo.GinkgoT(), err, fmt.Sprintln("error downloading test geoip2 db", filename))
 
