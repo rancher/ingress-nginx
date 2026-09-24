@@ -45,3 +45,5 @@ updates:
         patterns:
           - k8s.io/*
           - sigs.k8s.io/* # Bundle it into the same PR
+        update-types:
+          - "patch"
