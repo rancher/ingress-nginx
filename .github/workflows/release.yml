@@ -241,7 +241,7 @@ jobs:
 
     - name: Build and push kube-webhook-certgen image
       if: steps.certgen_exists.outputs.exists != 'true' || steps.prime_certgen_exists.outputs.prime_exists != 'true'
-      uses: rancher/ecm-distro-tools/actions/publish-image@086cd2f90ed82712e45701441a00e59b95b578c1 # v0.77.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@fdf1c26ea7f6c61b1cc8496a393788d9e9246b98 # v0.77.3
       env:
         NAME: kube-webhook-certgen
       with:
@@ -452,7 +452,7 @@ jobs:
         echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_ENV
     
     - name: Build and push controller image
-      uses: rancher/ecm-distro-tools/actions/publish-image@086cd2f90ed82712e45701441a00e59b95b578c1 # v0.77.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@fdf1c26ea7f6c61b1cc8496a393788d9e9246b98 # v0.77.3
       with:
         image: nginx-ingress-controller
         tag: ${{ github.event.release.tag_name }}
@@ -469,7 +469,7 @@ jobs:
         push-to-prime: ${{ github.repository_owner == 'rancher' }}
 
     - name: Build and push controller chroot image
-      uses: rancher/ecm-distro-tools/actions/publish-image@086cd2f90ed82712e45701441a00e59b95b578c1 # v0.77.1
+      uses: rancher/ecm-distro-tools/actions/publish-image@fdf1c26ea7f6c61b1cc8496a393788d9e9246b98 # v0.77.3
       with:
         image: nginx-ingress-controller-chroot
         tag: ${{ github.event.release.tag_name }}
