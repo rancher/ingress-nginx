@@ -8,9 +8,11 @@ updates:
       actions:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
         update-types:
-          - "major"
-          - "minor"
+          - "version-update:semver-patch"
+  
   # General Go dependencies, updated weekly
   - package-ecosystem: "gomod"
     directories:
@@ -30,7 +32,8 @@ updates:
       - dependency-name: k8s.io/*
       - dependency-name: sigs.k8s.io/*
 
-  # K8s dependencies, updated monthly
+  # K8s dependencies, updated monthly,
+  # Only patch updates, in a bundled PR. Ignore major/minor bumps
   - package-ecosystem: "gomod"
     directories:
       - "/"
@@ -40,10 +43,19 @@ updates:
     allow:
       - dependency-name: k8s.io/*
       - dependency-name: sigs.k8s.io/* # Allow it through the gate
+    ignore:
+      - dependency-name: k8s.io/*
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
+      - dependency-name: sigs.k8s.io/*
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
     groups:
       k8s-dependencies:
         patterns:
           - k8s.io/*
-          - sigs.k8s.io/* # Bundle it into the same PR
+          - sigs.k8s.io/* 
         update-types:
           - "patch"
