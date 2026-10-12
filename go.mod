@@ -1,6 +1,6 @@
 module k8s.io/ingress-nginx
 
-go 1.26.7
+go 1.26.9
 
 require (
 	dario.cat/mergo v1.0.2
@@ -116,7 +116,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
