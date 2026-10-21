@@ -1,0 +1,146 @@
+---
+name: "Update build base version"
+
+sources:
+  current_minor:
+    name: Get current Go minor version
+    kind: file
+    spec:
+      file: GOLANG_VERSION
+    transformers:
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+)'
+          captureindex: 1
+
+  latest_patch:
+    name: Get latest hardened build base tag for the current Go minor
+    kind: dockerimage
+    dependson:
+      - "current_minor"
+    spec:
+      image: rancher/hardened-build-base
+      architecture: amd64
+      versionfilter:
+        kind: regex/semver
+        replaceall:
+          pattern: 'b(\d+)$'
+          replacement: '-b.$1'
+        regex: '(v{{ source "current_minor" }}\.\d+-b\.\d+)'
+        pattern: '~{{ source "current_minor" }}.0-0'
+
+targets:
+  golang-version:
+    name: Update the Go version file
+    kind: file
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: GOLANG_VERSION
+      matchpattern: '[0-9]+\.[0-9]+\.[0-9]+'
+
+  go-mod:
+    name: Update the root Go module version
+    kind: golang/gomod
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: go.mod
+
+  custom-error-pages-go-mod:
+    name: Update the custom error pages Go module version
+    kind: golang/gomod
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: images/custom-error-pages/rootfs/go.mod
+
+  ext-auth-example-authsvc-go-mod:
+    name: Update the external auth example Go module version
+    kind: golang/gomod
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: images/ext-auth-example-authsvc/rootfs/go.mod
+
+  go-grpc-greeter-server-go-mod:
+    name: Update the gRPC greeter server Go module version
+    kind: golang/gomod
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: images/go-grpc-greeter-server/rootfs/go.mod
+
+  kube-webhook-certgen-go-mod:
+    name: Update the webhook certgen Go module version
+    kind: golang/gomod
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - trimprefix: "v"
+      - findsubmatch:
+          pattern: '^([0-9]+\.[0-9]+\.[0-9]+)'
+          captureindex: 1
+    spec:
+      file: images/kube-webhook-certgen/rootfs/go.mod
+
+  suffix:
+    name: Update the hardened build base suffix in the Makefile
+    kind: file
+    scmid: default
+    sourceid: latest_patch
+    transformers:
+      - findsubmatch:
+          pattern: '(b\d+)$'
+          captureindex: 1
+      - addprefix: '${1}'
+    spec:
+      file: Makefile
+      matchpattern: '(rancher/hardened-build-base:v\$\(GO_VERSION\))b[0-9]+'
+
+scms:
+  default:
+    kind: github
+    spec:
+      token: '{{ requiredEnv .github.token }}'
+      username: '{{ requiredEnv .github.username }}'
+      user: '{{ .github.user }}'
+      email: '{{ .github.email }}'
+      owner: '{{ .github.owner }}'
+      repository: '{{ .github.repository }}'
+      branch: '{{ .github.branch }}'
+      
+actions:
+  default:
+    title: 'Bump build base version to {{ source "latest_patch" }}'
+    kind: github/pullrequest
+    spec:
+      merge:
+        strategy: auto
+      labels:
+        - updatecli
+    scmid: default
