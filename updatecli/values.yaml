@@ -1,0 +1,8 @@
+github:
+  user: "renovate-rancher[bot]"
+  email: "119870437+renovate-rancher[bot]@users.noreply.github.com"
+  username: "UPDATECLI_GITHUB_ACTOR"
+  token: "UPDATECLI_GITHUB_TOKEN"
+  repository: "ingress-nginx"
+  branch: "hardened-nginx-1.15.x"
+  owner: "rancher"
