@@ -10,6 +10,9 @@ TAG=${NGINX_TAG}-e2e
 
 missing_libs=$(docker run --rm --entrypoint /bin/bash rancher/nginx:${TAG} -c '
   shopt -s nullglob globstar
+  required_targets=(
+    /usr/lib64/ossl-modules/fips.so
+  )
   targets=(
     /usr/local/nginx/sbin/nginx
     /etc/nginx/modules/*
@@ -18,8 +21,16 @@ missing_libs=$(docker run --rm --entrypoint /bin/bash rancher/nginx:${TAG} -c '
     /usr/local/lib/lua/**/*.so
     /usr/lib64/libopentelemetry*.so*
     /usr/lib64/libbrotli*.so*
+    "${required_targets[@]}"
     /opt/**/*.so*
   )
+
+  for target in "${required_targets[@]}"; do
+    if [[ ! -e "${target}" ]]; then
+      printf "Required runtime target is missing: %s\n" "${target}" >&2
+      exit 1
+    fi
+  done
 
   for target in "${targets[@]}"; do
     [[ -e "${target}" ]] || continue

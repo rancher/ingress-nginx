@@ -11,6 +11,7 @@ curl
 which
 libyajl2
 openssl-3
+libopenssl-3-fips-provider
 libpcre1
 libicu77
 util-linux
