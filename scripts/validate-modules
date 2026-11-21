@@ -32,6 +32,11 @@ missing_libs=$(docker run --rm --entrypoint /bin/bash rancher/nginx:${TAG} -c '
     fi
   done
 
+  if ! openssl list -providers -provider fips >/dev/null 2>&1; then
+    printf "OpenSSL FIPS provider failed to load\n" >&2
+    exit 1
+  fi
+
   for target in "${targets[@]}"; do
     [[ -e "${target}" ]] || continue
     printf "=== %s ===\n" "${target}"
