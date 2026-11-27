@@ -117,7 +117,7 @@ clean-chroot-image: ## Removes local image
 
 .PHONY: build
 build:  ## Build ingress controller, debug tool and pre-stop hook.
-	E2E_IMAGE=rancher/hardened-build-base:v$(GO_VERSION)b1 USE_SHELL=/bin/sh build/run-in-docker.sh \
+	E2E_IMAGE=rancher/hardened-build-base:v$(GO_VERSION)b2 USE_SHELL=/bin/sh build/run-in-docker.sh \
 		MAC_OS=$(MAC_OS) \
 		PKG=$(PKG) \
 		ARCH=$(ARCH) \
